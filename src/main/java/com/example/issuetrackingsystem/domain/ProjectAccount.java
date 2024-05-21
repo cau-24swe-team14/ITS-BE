@@ -5,8 +5,6 @@ import com.example.issuetrackingsystem.domain.key.ProjectAccountPK;
 import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MapsId;
@@ -41,11 +39,10 @@ public class ProjectAccount {
   @JoinColumn(name = "account_id", nullable = false)
   private Account account;
 
-  @Enumerated(EnumType.STRING)
   @Column(name = "role", nullable = false)
   private ProjectUserRole status;
 
-  @Column(name = "date", nullable = false)
+  @Column(name = "date", nullable = false, insertable = false, updatable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
   private LocalDateTime date;
 
 }
