@@ -6,8 +6,6 @@ import com.example.issuetrackingsystem.domain.key.IssuePK;
 import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MapsId;
@@ -41,35 +39,33 @@ public class Issue {
   @Column(name = "title", nullable = false)
   private String title;
 
-  @Column(name = "description")
+  @Column(name = "description", length = 2000)
   private String description;
 
   @ManyToOne
   @JoinColumn(name = "reporter", referencedColumnName = "id", nullable = false)
   private Account reporter;
 
-  @Column(name = "reported_date", nullable = false)
+  @Column(name = "reported_date", nullable = false, insertable = false, updatable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
   private LocalDateTime reportedDate;
 
   @ManyToOne
-  @JoinColumn(name = "assignee", referencedColumnName = "id", nullable = false)
+  @JoinColumn(name = "assignee", referencedColumnName = "id")
   private Account assignee;
 
   @ManyToOne
-  @JoinColumn(name = "fixer", referencedColumnName = "id", nullable = false)
+  @JoinColumn(name = "fixer", referencedColumnName = "id")
   private Account fixer;
 
-  @Enumerated(EnumType.STRING)
   @Column(name = "priority", nullable = false)
-  @ColumnDefault("'MAJOR'")
+  @ColumnDefault("2")
   private IssuePriority priority;
 
-  @Enumerated(EnumType.STRING)
   @Column(name = "status", nullable = false)
-  @ColumnDefault("'NEW'")
+  @ColumnDefault("0")
   private IssueStatus status;
 
-  @Column(name = "closed_date", nullable = false)
+  @Column(name = "closed_date", columnDefinition = "TIMESTAMP")
   private LocalDateTime closedDate;
 
 }

@@ -3,8 +3,8 @@ package com.example.issuetrackingsystem.domain;
 import com.example.issuetrackingsystem.domain.enums.ProjectStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
@@ -26,21 +26,21 @@ import org.hibernate.annotations.DynamicUpdate;
 public class Project {
 
   @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "id", nullable = false)
   private Long projectId;
 
   @Column(name = "title", nullable = false)
   private String title;
 
-  @Column(name = "description")
+  @Column(name = "description", length = 2000)
   private String description;
 
-  @Column(name = "date", nullable = false)
+  @Column(name = "date", nullable = false, insertable = false, updatable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
   private LocalDateTime date;
 
-  @Enumerated(EnumType.STRING)
   @Column(name = "status", nullable = false)
-  @ColumnDefault("'IN_PROGRESS'")
+  @ColumnDefault("0")
   private ProjectStatus status;
 
 }

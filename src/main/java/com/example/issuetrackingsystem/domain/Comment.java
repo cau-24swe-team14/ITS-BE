@@ -37,15 +37,14 @@ public class Comment {
   })
   private Issue issue;
 
-  @MapsId("accountId")
   @ManyToOne
   @JoinColumn(name = "account_id", referencedColumnName = "id", nullable = false)
   private Account account;
 
-  @Column(name = "content")
+  @Column(name = "content", length = 2000, nullable = false)
   private String content;
 
-  @Column(name = "date", nullable = false)
+  @Column(name = "date", nullable = false, insertable = false, updatable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
   private LocalDateTime date;
 
 }
