@@ -1,5 +1,6 @@
 package com.example.issuetrackingsystem.domain;
 
+import com.example.issuetrackingsystem.domain.enums.IssueKeyword;
 import com.example.issuetrackingsystem.domain.enums.IssuePriority;
 import com.example.issuetrackingsystem.domain.enums.IssueStatus;
 import com.example.issuetrackingsystem.domain.key.IssuePK;
@@ -42,12 +43,18 @@ public class Issue {
   @Column(name = "description", length = 2000)
   private String description;
 
+  @Column(name = "keyword")
+  private IssueKeyword keyword;
+
   @ManyToOne
   @JoinColumn(name = "reporter", referencedColumnName = "id", nullable = false)
   private Account reporter;
 
   @Column(name = "reported_date", nullable = false, insertable = false, updatable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
   private LocalDateTime reportedDate;
+
+  @Column(name = "due_date", nullable = false, columnDefinition = "TIMESTAMP")
+  private LocalDateTime dueDate;
 
   @ManyToOne
   @JoinColumn(name = "assignee", referencedColumnName = "id")
