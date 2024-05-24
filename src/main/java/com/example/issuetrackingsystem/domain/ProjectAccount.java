@@ -15,12 +15,14 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
 @Getter
 @Entity
 @Table(name = "project_account")
 @Builder
+@DynamicInsert
 @DynamicUpdate
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -40,7 +42,7 @@ public class ProjectAccount {
   private Account account;
 
   @Column(name = "role", nullable = false)
-  private ProjectUserRole status;
+  private ProjectUserRole role;
 
   @Column(name = "date", nullable = false, insertable = false, updatable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
   private LocalDateTime date;
