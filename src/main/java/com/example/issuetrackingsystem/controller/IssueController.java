@@ -1,7 +1,6 @@
 package com.example.issuetrackingsystem.controller;
 
 import com.example.issuetrackingsystem.dto.AddIssueRequest;
-import com.example.issuetrackingsystem.exception.ErrorCode;
 import com.example.issuetrackingsystem.exception.ITSException;
 import com.example.issuetrackingsystem.service.IssueService;
 import jakarta.servlet.http.HttpSession;
@@ -25,19 +24,14 @@ public class IssueController {
   }
 
   @PostMapping("/issues")
-  public ResponseEntity issueAdd(HttpSession session, @PathVariable("projectId") Long projectId, @RequestBody AddIssueRequest addIssueRequest) {
+  public ResponseEntity issueAdd(HttpSession session, @PathVariable("projectId") Long projectId,
+      @RequestBody AddIssueRequest addIssueRequest) {
     Long accountId = (Long) session.getAttribute("id");
 
-    try {
-      if (accountId == null) {
-        return ResponseEntity
-            .status(HttpStatus.FORBIDDEN)
-            .body("로그인 정보가 없습니다.");
-      }
-    } catch (ITSException e) {
-      ResponseEntity
-          .status(e.getErrorCode().getHttpStatus())
-          .body(e.getErrorCode().getMessage());
+    if (accountId == null) {
+      return ResponseEntity
+          .status(HttpStatus.FORBIDDEN)
+          .body("로그인 정보가 없습니다.");
     }
 
     String location;
