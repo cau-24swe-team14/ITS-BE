@@ -15,7 +15,8 @@ public class AddIssueRequest {
 
   private String title;
   private String description;
-  private String priority;
+  private Integer priority;
+  private Integer keyword;
   @DateTimeFormat(pattern = "yyyy-MM-dd")
-  private LocalDateTime dueDate;
+  private String dueDate;
 }

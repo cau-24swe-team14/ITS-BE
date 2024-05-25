@@ -1,6 +1,6 @@
 package com.example.issuetrackingsystem.domain;
 
-import com.example.issuetrackingsystem.domain.enums.ProjectUserRole;
+import com.example.issuetrackingsystem.domain.enums.ProjectAccountRole;
 import com.example.issuetrackingsystem.domain.key.ProjectAccountPK;
 import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
@@ -42,7 +42,7 @@ public class ProjectAccount {
   private Account account;
 
   @Column(name = "role", nullable = false)
-  private ProjectUserRole role;
+  private ProjectAccountRole role;
 
   @Column(name = "date", nullable = false, insertable = false, updatable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
   private LocalDateTime date;
