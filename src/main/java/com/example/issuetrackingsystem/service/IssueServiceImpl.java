@@ -9,11 +9,13 @@ import com.example.issuetrackingsystem.domain.enums.IssueKeyword;
 import com.example.issuetrackingsystem.domain.enums.IssuePriority;
 import com.example.issuetrackingsystem.domain.enums.IssueStatus;
 import com.example.issuetrackingsystem.domain.enums.ProjectAccountRole;
+import com.example.issuetrackingsystem.domain.key.CommentPK;
 import com.example.issuetrackingsystem.domain.key.IssuePK;
 import com.example.issuetrackingsystem.domain.key.ProjectAccountPK;
 import com.example.issuetrackingsystem.dto.AddCommentRequest;
+import com.example.issuetrackingsystem.dto.AddCommentResponse;
+import com.example.issuetrackingsystem.dto.AddCommentResponse;
 import com.example.issuetrackingsystem.dto.AddIssueRequest;
-import com.example.issuetrackingsystem.dto.CommentResponse;
 import com.example.issuetrackingsystem.dto.DetailsIssueResponse;
 import com.example.issuetrackingsystem.dto.ModifyIssueRequest;
 import com.example.issuetrackingsystem.exception.ErrorCode;
@@ -296,7 +298,7 @@ public class IssueServiceImpl implements IssueService {
   }
 
   @Override
-  @Transactional
+  @Transactional(readOnly = true)
   public DetailsIssueResponse findIssue(Long accountId, Long projectId, Long issueId) {
     // 사용자가 Admin이거나 해당 프로젝트에 속해 있는지 검증
     if (accountId != 0) {
@@ -312,10 +314,10 @@ public class IssueServiceImpl implements IssueService {
         .orElseThrow(() -> new ITSException(ErrorCode.ISSUE_NOT_FOUND));
 
     List<Comment> commentList = commentRepository.findByIssue(issue).orElse(Collections.emptyList());
-    List<CommentResponse> commentResponseList = new ArrayList<>();
+    List<AddCommentResponse> addCommentResponseList = new ArrayList<>();
 
     for (Comment comment : commentList) {
-      commentResponseList.add(CommentResponse.builder()
+      addCommentResponseList.add(AddCommentResponse.builder()
               .id(comment.getId().getCommentId())
               .username(comment.getAccount().getUsername())
               .content(comment.getContent())
@@ -338,7 +340,7 @@ public class IssueServiceImpl implements IssueService {
         .status(issue.getStatus() != null ? issue.getStatus().ordinal() : null)
         .dueDate(issue.getDueDate().format(DateTimeFormatter.ISO_DATE))
         .closedDate(issue.getClosedDate() != null ? issue.getClosedDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) : null)
-        .comment(commentResponseList)
+        .comment(addCommentResponseList)
         .build();
 
     return detailsIssueResponse;
@@ -346,7 +348,52 @@ public class IssueServiceImpl implements IssueService {
 
   @Override
   @Transactional
-  public List<AddCommentRequest> addComment(Long accountId, Long projectId, Long issueId, AddCommentRequest addCommentRequest) {
-    return new ArrayList<>();
+  public List<AddCommentResponse> addComment(Long accountId, Long projectId, Long issueId, AddCommentRequest addCommentRequest) {
+    projectAccountRepository.findById(ProjectAccountPK.builder()
+        .accountId(accountId)
+        .projectId(projectId).build()).orElseThrow(() -> new ITSException(ErrorCode.COMMENT_CREATION_FORBIDDEN));
+
+    // issue별 comment_id auto increment
+    Long maxCommentId = commentRepository.findMaxIdByIssueId(issueId);
+    Long newCommentId = (maxCommentId != null ? maxCommentId : 0) + 1;
+
+    // 코멘트 생성
+    IssuePK issuePK = IssuePK.builder()
+        .projectId(projectId)
+        .issueId(issueId)
+        .build();
+
+    Issue issue = issueRepository.findById(issuePK)
+        .orElseThrow(() -> new ITSException(ErrorCode.COMMENT_CREATION_BAD_REQUEST));
+
+    Account account = accountRepository.findById(accountId)
+        .orElseThrow(() -> new ITSException(ErrorCode.COMMENT_CREATION_FORBIDDEN));
+
+    Comment comment = Comment.builder()
+        .id(CommentPK.builder()
+            .issueId(issuePK)
+            .commentId(newCommentId)
+            .build())
+        .issue(issue)
+        .account(account)
+        .content(addCommentRequest.getContent())
+        .date(LocalDateTime.now())
+        .build();
+
+    commentRepository.save(comment);
+
+    List<Comment> commentList = commentRepository.findAll();
+    List<AddCommentResponse> addCommentResponseList = new ArrayList<>();
+
+    for (Comment c : commentList) {
+      addCommentResponseList.add(AddCommentResponse.builder()
+              .id(c.getId().getCommentId())
+              .username(c.getAccount().getUsername())
+              .content(c.getContent())
+              .date(c.getDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+          .build());
+    }
+
+    return addCommentResponseList;
   }
 }

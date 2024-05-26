@@ -29,5 +29,5 @@ public class DetailsIssueResponse {
   private String dueDate;
   @DateTimeFormat(pattern = "yyyy-MM-dd")
   private String closedDate;
-  private List<CommentResponse> comment;
+  private List<AddCommentResponse> comment;
 }
