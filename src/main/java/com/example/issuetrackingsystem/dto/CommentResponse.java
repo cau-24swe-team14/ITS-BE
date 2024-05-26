@@ -1,6 +1,5 @@
 package com.example.issuetrackingsystem.dto;
 
-import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -11,12 +10,10 @@ import org.springframework.format.annotation.DateTimeFormat;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class AddIssueRequest {
-
-  private String title;
-  private String description;
-  private Integer priority;
-  private Integer keyword;
+public class CommentResponse {
+  private Long id;
+  private String username;
+  private String content;
   @DateTimeFormat(pattern = "yyyy-MM-dd")
-  private String dueDate;
+  private String date;
 }
