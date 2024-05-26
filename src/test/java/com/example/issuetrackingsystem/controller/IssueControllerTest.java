@@ -5,17 +5,21 @@ import com.example.issuetrackingsystem.domain.Issue;
 import com.example.issuetrackingsystem.domain.Project;
 import com.example.issuetrackingsystem.domain.ProjectAccount;
 import com.example.issuetrackingsystem.domain.enums.IssuePriority;
+import com.example.issuetrackingsystem.domain.enums.IssueStatus;
 import com.example.issuetrackingsystem.domain.enums.ProjectAccountRole;
 import com.example.issuetrackingsystem.domain.key.IssuePK;
 import com.example.issuetrackingsystem.domain.key.ProjectAccountPK;
 import com.example.issuetrackingsystem.dto.AddIssueRequest;
+import com.example.issuetrackingsystem.dto.DetailsIssueResponse;
 import com.example.issuetrackingsystem.dto.ModifyIssueRequest;
 import com.example.issuetrackingsystem.repository.AccountRepository;
+import com.example.issuetrackingsystem.repository.CommentRepository;
 import com.example.issuetrackingsystem.repository.IssueRepository;
 import com.example.issuetrackingsystem.repository.ProjectAccountRepository;
 import com.example.issuetrackingsystem.repository.ProjectRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -38,6 +42,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -63,6 +68,9 @@ public class IssueControllerTest {
 
   @Autowired
   ProjectAccountRepository projectAccountRepository;
+
+  @Autowired
+  CommentRepository commentRepository;
 
   @Autowired
   private ObjectMapper objectMapper;
@@ -132,9 +140,7 @@ public class IssueControllerTest {
     String title = "title";
     String description = "description";
     Integer priority = 2;
-    LocalDateTime dueDate = LocalDateTime.parse(
-        LocalDateTime.now().plusDays(3).format(
-            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")));
+    String dueDate = LocalDateTime.now().plusDays(3).format(DateTimeFormatter.ISO_DATE);
     AddIssueRequest addIssueRequest = AddIssueRequest.builder()
         .title(title)
         .description(description)
@@ -146,9 +152,9 @@ public class IssueControllerTest {
 
     // when
     mockMvc.perform(post("/projects/{projectId}/issues", projectId)
-        .contentType(MediaType.APPLICATION_JSON)
-        .session(sessions[2])
-        .content(objectMapper.writeValueAsString(addIssueRequest)))
+            .contentType(MediaType.APPLICATION_JSON)
+            .session(sessions[2])
+            .content(objectMapper.writeValueAsString(addIssueRequest)))
         .andExpect(status().isCreated());
 
     // then
@@ -190,5 +196,55 @@ public class IssueControllerTest {
         .issueId(issueId)
         .projectId(projectId).build()).orElseThrow();
     assertThat(modifiedIssue.getAssignee().getUsername()).isEqualTo(username);
+  }
+
+  @DisplayName("findIssue: 이슈 상세 정보를 성공적으로 가져온다.")
+  @Test
+  @Order(3)
+  public void findIssue_Success() throws Exception {
+    // given
+    String title = "issue title";
+    String description = "issue description";
+    LocalDateTime reportedDate = LocalDateTime.now();
+    String dueDate = LocalDateTime.now().plusDays(3).format(DateTimeFormatter.ISO_DATE);
+
+    Project project = projectRepository.findAll().get(0);
+    Long projectId = project.getProjectId();
+
+    Issue issue = issueRepository.save(Issue.builder()
+        .id(IssuePK.builder()
+            .projectId(projectId)
+            .issueId(1L)
+            .build())
+        .project(project)
+        .title(title)
+        .description(description)
+        .reportedDate(reportedDate)
+        .dueDate(LocalDate.parse(dueDate))
+        .priority(IssuePriority.CRITICAL)
+        .reporter(accountRepository.findAll().get(0))
+        .status(IssueStatus.NEW)
+        .build());
+
+    // when
+    String responseString = mockMvc.perform(get("/projects/{projectId}/issues/{issueId}", projectId, 1L)
+            .contentType(MediaType.APPLICATION_JSON)
+            .session(sessions[1]))
+        .andExpect(status().isOk())
+        .andReturn()
+        .getResponse()
+        .getContentAsString();
+
+    DetailsIssueResponse response = objectMapper.readValue(responseString, DetailsIssueResponse.class);
+
+    // then
+    assertThat(response.getId()).isEqualTo(1L);
+    assertThat(response.getProjectId()).isEqualTo(issue.getProject().getProjectId());
+    assertThat(response.getTitle()).isEqualTo(issue.getTitle());
+    assertThat(response.getDescription()).isEqualTo(issue.getDescription());
+    assertThat(response.getPriority()).isEqualTo(issue.getPriority().ordinal());
+    assertThat(response.getReporter()).isEqualTo(issue.getReporter().getUsername());
+    assertThat(response.getReportedDate()).isEqualTo(issue.getReportedDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+    assertThat(response.getDueDate()).isEqualTo(issue.getDueDate().toString());
   }
 }

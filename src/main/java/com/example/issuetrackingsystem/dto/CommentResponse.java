@@ -10,13 +10,10 @@ import org.springframework.format.annotation.DateTimeFormat;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ModifyIssueRequest {
-  private String title;
-  private String description;
-  private Integer keyword;
-  private String assignee;
-  private Integer priority;
-  private Integer status;
+public class CommentResponse {
+  private Long id;
+  private String username;
+  private String content;
   @DateTimeFormat(pattern = "yyyy-MM-dd")
-  private String dueDate;
+  private String date;
 }

@@ -4,18 +4,23 @@ import com.example.issuetrackingsystem.domain.Account;
 import com.example.issuetrackingsystem.domain.Issue;
 import com.example.issuetrackingsystem.domain.Project;
 import com.example.issuetrackingsystem.domain.ProjectAccount;
+import com.example.issuetrackingsystem.domain.enums.IssuePriority;
 import com.example.issuetrackingsystem.domain.enums.IssueStatus;
 import com.example.issuetrackingsystem.domain.enums.ProjectAccountRole;
 import com.example.issuetrackingsystem.domain.key.IssuePK;
 import com.example.issuetrackingsystem.domain.key.ProjectAccountPK;
 import com.example.issuetrackingsystem.dto.AddIssueRequest;
+import com.example.issuetrackingsystem.dto.DetailsIssueResponse;
 import com.example.issuetrackingsystem.dto.ModifyIssueRequest;
+import com.example.issuetrackingsystem.exception.ErrorCode;
 import com.example.issuetrackingsystem.exception.ITSException;
 import com.example.issuetrackingsystem.repository.AccountRepository;
+import com.example.issuetrackingsystem.repository.CommentRepository;
 import com.example.issuetrackingsystem.repository.IssueRepository;
 import com.example.issuetrackingsystem.repository.ProjectAccountRepository;
 import com.example.issuetrackingsystem.repository.ProjectRepository;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -31,6 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class IssueServiceTest {
@@ -47,6 +53,9 @@ public class IssueServiceTest {
   @Mock
   private IssueRepository issueRepository;
 
+  @Mock
+  private CommentRepository commentRepository;
+
   @InjectMocks
   private IssueServiceImpl issueService;
 
@@ -59,7 +68,7 @@ public class IssueServiceTest {
     AddIssueRequest addIssueRequest = AddIssueRequest.builder()
         .title("Test Issue")
         .description("Description")
-        .dueDate(LocalDateTime.now().plusDays(3))
+        .dueDate(LocalDateTime.now().plusDays(3).format(DateTimeFormatter.ISO_DATE))
         .priority(1)
         .build();
 
@@ -112,7 +121,7 @@ public class IssueServiceTest {
     AddIssueRequest addIssueRequest = AddIssueRequest.builder()
         .title("Test Issue")
         .description("Description")
-        .dueDate(LocalDateTime.now().plusDays(3))
+        .dueDate(LocalDateTime.now().plusDays(3).format(DateTimeFormatter.ISO_DATE))
         .priority(1)
         .build();
 
@@ -190,7 +199,7 @@ public class IssueServiceTest {
     given(projectAccountRepository.findById(any(ProjectAccountPK.class))).willReturn(Optional.of(projectAccount));
     given(accountRepository.findById(accountId)).willReturn(Optional.of(account));
     given(issueRepository.findById(any(IssuePK.class))).willReturn(Optional.of(issue));
-    given(accountRepository.findByUsername(newAssigneeUsername)).willReturn(newAssignee);
+    given(accountRepository.findByUsername(newAssigneeUsername)).willReturn(Optional.of(newAssignee));
 
     // ArgumentCaptor 설정
     ArgumentCaptor<Issue> issueCaptor = ArgumentCaptor.forClass(Issue.class);
@@ -205,5 +214,90 @@ public class IssueServiceTest {
     assertEquals(newAssignee, savedIssue.getAssignee());
     assertEquals(IssueStatus.ASSIGNED, savedIssue.getStatus());
     assertEquals(account, savedIssue.getManager());
+  }
+
+  @DisplayName("findIssue: Admin 계정인 경우 이슈 상세 정보 조회에 성공한다.")
+  @Test
+  public void findIssue_WhenUserIsAdmin_Success() {
+    // parameter Mock 데이터 설정
+    Long accountId = 0L;
+    Long projectId = 1L;
+    Long issueId = 1L;
+
+    // domain Mock 데이터 설정
+    Project project = Project.builder()
+        .projectId(projectId)
+        .build();
+    Account account = Account.builder()
+        .accountId(accountId)
+        .build();
+    Issue issue = Issue.builder()
+        .id(IssuePK.builder()
+            .projectId(projectId)
+            .issueId(issueId)
+            .build())
+        .title("Issue Title")
+        .description("Issue Description")
+        .keyword(null)
+        .reporter(account)
+        .reportedDate(LocalDateTime.now().minusDays(1))
+        .manager(account)
+        .assignee(account)
+        .fixer(account)
+        .priority(IssuePriority.CRITICAL)
+        .status(IssueStatus.NEW)
+        .dueDate(LocalDateTime.now().plusDays(3).toLocalDate())
+        .closedDate(null)
+        .build();
+
+    // 사용자가 프로젝트에 속한 경우의 Mock 데이터 설정
+    ProjectAccount projectAccount = ProjectAccount.builder()
+        .id(ProjectAccountPK.builder()
+            .accountId(accountId)
+            .projectId(projectId)
+            .build())
+        .account(account)
+        .project(project)
+        .role(ProjectAccountRole.tester)
+        .build();
+
+    // Mock 객체의 동작 설정
+    given(issueRepository.findById(any(IssuePK.class))).willReturn(Optional.of(issue));
+    given(commentRepository.findByIssue(any(Issue.class))).willReturn(Optional.empty());
+
+    // 테스트 실행
+    DetailsIssueResponse result = issueService.findIssue(accountId, projectId, issueId);
+
+    // 결과 검증
+    assertThat(result.getId()).isEqualTo(issueId);
+    assertThat(result.getProjectId()).isEqualTo(projectId);
+    assertThat(result.getTitle()).isEqualTo("Issue Title");
+    assertThat(result.getDescription()).isEqualTo("Issue Description");
+    assertThat(result.getReporter()).isEqualTo(account.getUsername());
+    assertThat(result.getReportedDate()).isEqualTo(issue.getReportedDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+    assertThat(result.getManager()).isEqualTo(account.getUsername());
+    assertThat(result.getAssignee()).isEqualTo(account.getUsername());
+    assertThat(result.getFixer()).isEqualTo(account.getUsername());
+    assertThat(result.getPriority()).isEqualTo(IssuePriority.CRITICAL.ordinal());
+    assertThat(result.getStatus()).isEqualTo(IssueStatus.NEW.ordinal());
+    assertThat(result.getDueDate()).isEqualTo(issue.getDueDate().format(DateTimeFormatter.ISO_DATE));
+    assertThat(result.getClosedDate()).isNull();
+    assertThat(result.getComment()).isEmpty();
+  }
+
+  @DisplayName("findIssue: 프로젝트에 속하지 않은 경우 이슈 상세 정보 조회에 실패한다")
+  @Test
+  public void findIssue_WhenUserIsNotMember_Fail() {
+    // parameter Mock 데이터 설정
+    Long accountId = 1L;
+    Long projectId = 1L;
+    Long issueId = 1L;
+
+    // Mock 객체의 동작 설정
+    given(projectAccountRepository.findById(any(ProjectAccountPK.class))).willReturn(Optional.empty());
+
+    // 테스트 실행 및 예외 확인
+    ITSException exception = assertThrows(ITSException.class, () -> issueService.findIssue(accountId, projectId, issueId));
+    assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.ISSUE_DETAILS_FORBIDDEN);
   }
 }
