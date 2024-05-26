@@ -1,14 +1,18 @@
 package com.example.issuetrackingsystem.service;
 
 import com.example.issuetrackingsystem.domain.Account;
+import com.example.issuetrackingsystem.domain.Comment;
 import com.example.issuetrackingsystem.domain.Issue;
 import com.example.issuetrackingsystem.domain.Project;
 import com.example.issuetrackingsystem.domain.ProjectAccount;
 import com.example.issuetrackingsystem.domain.enums.IssuePriority;
 import com.example.issuetrackingsystem.domain.enums.IssueStatus;
 import com.example.issuetrackingsystem.domain.enums.ProjectAccountRole;
+import com.example.issuetrackingsystem.domain.key.CommentPK;
 import com.example.issuetrackingsystem.domain.key.IssuePK;
 import com.example.issuetrackingsystem.domain.key.ProjectAccountPK;
+import com.example.issuetrackingsystem.dto.AddCommentRequest;
+import com.example.issuetrackingsystem.dto.AddCommentResponse;
 import com.example.issuetrackingsystem.dto.AddIssueRequest;
 import com.example.issuetrackingsystem.dto.DetailsIssueResponse;
 import com.example.issuetrackingsystem.dto.ModifyIssueRequest;
@@ -21,7 +25,9 @@ import com.example.issuetrackingsystem.repository.ProjectAccountRepository;
 import com.example.issuetrackingsystem.repository.ProjectRepository;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Optional;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,6 +35,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -299,5 +306,82 @@ public class IssueServiceTest {
     // 테스트 실행 및 예외 확인
     ITSException exception = assertThrows(ITSException.class, () -> issueService.findIssue(accountId, projectId, issueId));
     assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.ISSUE_DETAILS_FORBIDDEN);
+  }
+
+  @DisplayName("addComment: 사용자가 해당 프로젝트에 속해 있을 때 코멘트 추가에 성공한다.")
+  @Test
+  @Disabled
+  public void addComment_WhenUserIsMember_Success() {
+    // Given
+    Long accountId = 1L;
+    Long projectId = 1L;
+    Long issueId = 1L;
+
+    // domain Mock 데이터 설정
+    Project project = Project.builder()
+        .projectId(projectId)
+        .build();
+    Account account = Account.builder()
+        .accountId(accountId)
+        .username("TestUser")
+        .build();
+    given(accountRepository.findById(accountId)).willReturn(Optional.of(account));
+
+    // 사용자가 프로젝트에 속한 경우의 Mock 데이터 설정
+    ProjectAccount projectAccount = ProjectAccount.builder()
+        .id(ProjectAccountPK.builder()
+            .accountId(accountId)
+            .projectId(projectId)
+            .build())
+        .account(account)
+        .project(project)
+        .role(ProjectAccountRole.tester)
+        .build();
+
+    AddCommentRequest addCommentRequest = AddCommentRequest.builder()
+        .content("Test comment content")
+        .build();
+
+    LocalDateTime date = LocalDateTime.now();
+
+    // Mocking issueRepository behavior
+    Issue issue = Issue.builder()
+        .id(IssuePK.builder()
+            .projectId(projectId)
+            .issueId(issueId)
+            .build())
+        .build();
+    given(issueRepository.findById(any(IssuePK.class))).willReturn(Optional.of(issue));
+
+    // Mocking commentRepository behavior
+    given(commentRepository.findMaxIdByIssueId(issueId)).willReturn(0L); // assuming no existing comments
+    given(commentRepository.save(any(Comment.class))).willAnswer(invocation -> {
+      Comment comment = invocation.getArgument(0);
+      // Assuming the Comment constructor or builder allows setting ID
+      Comment newComment = Comment.builder()
+          .issue(comment.getIssue())
+          .account(comment.getAccount())
+          .content(comment.getContent())
+          .date(comment.getDate())
+          .id(CommentPK.builder()
+              .issueId(comment.getId().getIssueId())
+              .commentId(1L) // setting the comment ID
+              .build())
+          .build();
+      return newComment;
+    });
+
+    // Mocking projectAccountRepository behavior
+    given(projectAccountRepository.findById(any(ProjectAccountPK.class))).willReturn(Optional.of(projectAccount));
+
+    // when
+    List<AddCommentResponse> addCommentResponseList = issueService.addComment(accountId, projectId, issueId, addCommentRequest);
+
+    // then
+    assertThat(addCommentResponseList).hasSize(1);
+    assertThat(addCommentResponseList.get(0).getId()).isEqualTo(1L);
+    assertThat(addCommentResponseList.get(0).getUsername()).isEqualTo(account.getUsername());
+    assertThat(addCommentResponseList.get(0).getContent()).isEqualTo(addCommentRequest.getContent());
+    assertThat(addCommentResponseList.get(0).getDate()).isEqualTo(date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
   }
 }

@@ -10,7 +10,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CommentResponse {
+public class AddCommentResponse {
   private Long id;
   private String username;
   private String content;

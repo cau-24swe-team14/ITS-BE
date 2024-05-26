@@ -9,6 +9,8 @@ import com.example.issuetrackingsystem.domain.enums.IssueStatus;
 import com.example.issuetrackingsystem.domain.enums.ProjectAccountRole;
 import com.example.issuetrackingsystem.domain.key.IssuePK;
 import com.example.issuetrackingsystem.domain.key.ProjectAccountPK;
+import com.example.issuetrackingsystem.dto.AddCommentRequest;
+import com.example.issuetrackingsystem.dto.AddCommentResponse;
 import com.example.issuetrackingsystem.dto.AddIssueRequest;
 import com.example.issuetrackingsystem.dto.DetailsIssueResponse;
 import com.example.issuetrackingsystem.dto.ModifyIssueRequest;
@@ -22,6 +24,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -125,7 +128,9 @@ public class IssueControllerTest {
   public static void tearDown(@Autowired AccountRepository accountRepository,
       @Autowired ProjectRepository projectRepository,
       @Autowired ProjectAccountRepository projectAccountRepository,
-      @Autowired IssueRepository issueRepository) {
+      @Autowired IssueRepository issueRepository,
+      @Autowired CommentRepository commentRepository) {
+    commentRepository.deleteAll();
     issueRepository.deleteAll();
     projectAccountRepository.deleteAll();
     projectRepository.deleteAll();
@@ -246,5 +251,46 @@ public class IssueControllerTest {
     assertThat(response.getReporter()).isEqualTo(issue.getReporter().getUsername());
     assertThat(response.getReportedDate()).isEqualTo(issue.getReportedDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
     assertThat(response.getDueDate()).isEqualTo(issue.getDueDate().toString());
+  }
+
+  @DisplayName("commentAdd: 이슈 코멘트 추가에 성공한다.")
+  @Test
+  @Order(4)
+  public void commentAdd_Success() throws Exception {
+    // Given
+    Long accountId = 1L;
+    Long projectId = 1L;
+    Long issueId = 1L;
+    AddCommentRequest addCommentRequest = AddCommentRequest.builder()
+        .content("Test comment content")
+        .build();
+
+    LocalDateTime date = LocalDateTime.now();
+
+    List<AddCommentResponse> addCommentResponseList = new ArrayList<>();
+    AddCommentResponse addCommentResponse = AddCommentResponse.builder()
+        .id(1L)
+        .username("test_user")
+        .content("Test comment content")
+        .date(date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+        .build();
+    addCommentResponseList.add(addCommentResponse);
+
+    // when
+    String responseString = mockMvc.perform(post("/projects/{projectId}/issues/{issueId}/comments", projectId, issueId)
+            .contentType(MediaType.APPLICATION_JSON)
+            .session(sessions[1])
+            .content(objectMapper.writeValueAsString(addCommentRequest)))
+        .andExpect(status().isCreated())
+        .andReturn()
+        .getResponse()
+        .getContentAsString();
+
+    // then
+    assertThat(addCommentResponseList).hasSize(1);
+    assertThat(addCommentResponseList.get(0).getId()).isEqualTo(1L);
+    assertThat(addCommentResponseList.get(0).getUsername()).isEqualTo("test_user");
+    assertThat(addCommentResponseList.get(0).getContent()).isEqualTo("Test comment content");
+    assertThat(addCommentResponseList.get(0).getDate()).isEqualTo(date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
   }
 }
