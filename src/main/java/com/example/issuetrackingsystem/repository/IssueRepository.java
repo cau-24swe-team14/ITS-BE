@@ -66,4 +66,7 @@ public interface IssueRepository extends JpaRepository<Issue, IssuePK> {
       "ORDER BY count DESC " +
       "LIMIT 1")
   Object[] findBestReporterDuringLastWeek(@Param("startDate") LocalDateTime startDate);
+
+  @Query("SELECT i FROM Issue i WHERE i.id.projectId = :projectId AND (i.reporter.id = :accountId OR i.manager.id = :accountId OR i.assignee.id = :accountId OR i.fixer.id = :accountId)")
+  List<Issue> findByProjectIdAndAccountId(Long projectId, Long accountId);
 }

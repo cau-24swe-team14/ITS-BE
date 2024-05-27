@@ -1,5 +1,6 @@
 package com.example.issuetrackingsystem.controller;
 
+import com.example.issuetrackingsystem.dto.IssueResponse;
 import com.example.issuetrackingsystem.dto.ProjectResponse;
 import com.example.issuetrackingsystem.dto.ProjectTrendResponse;
 import com.example.issuetrackingsystem.exception.ErrorCode;
@@ -34,6 +35,25 @@ public class ProjectController {
       }
       List<ProjectResponse> projects = projectService.getProjectList(accountId);
       return ResponseEntity.ok(projects);
+    } catch (ITSException e) {
+      return ResponseEntity
+          .status(e.getErrorCode().getHttpStatus())
+          .body(e.getErrorCode().getMessage());
+    } //catch (Exception e) {
+//      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred.");
+//    }
+  }
+
+  @GetMapping("/{projectId}")
+  public ResponseEntity<?> getProjectDetails(HttpSession session, @PathVariable("projectId") Long projectId) {
+    Long accountId = (Long) session.getAttribute("id");
+
+    try {
+      if (accountId == null) {
+        throw new ITSException(ErrorCode.UNAUTHORIZED);
+      }
+      List<IssueResponse> issues = projectService.getIssueList(projectId, accountId);
+      return ResponseEntity.ok(issues);
     } catch (ITSException e) {
       return ResponseEntity
           .status(e.getErrorCode().getHttpStatus())

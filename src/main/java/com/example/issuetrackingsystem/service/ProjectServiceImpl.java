@@ -1,8 +1,10 @@
 package com.example.issuetrackingsystem.service;
 
+import com.example.issuetrackingsystem.domain.Issue;
 import com.example.issuetrackingsystem.domain.Project;
 import com.example.issuetrackingsystem.domain.ProjectAccount;
 import com.example.issuetrackingsystem.domain.key.ProjectAccountPK;
+import com.example.issuetrackingsystem.dto.IssueResponse;
 import com.example.issuetrackingsystem.dto.ProjectResponse;
 import com.example.issuetrackingsystem.dto.ProjectTrendResponse;
 import com.example.issuetrackingsystem.dto.ProjectTrendResponse.BestIssue;
@@ -41,6 +43,7 @@ public class ProjectServiceImpl implements ProjectService {
     this.commentRepository = commentRepository;
   }
 
+  @Override
   public List<ProjectResponse> getProjectList(Long accountId) {
     List<Project> projects = projectRepository.findByAccountId(accountId);
 
@@ -50,6 +53,19 @@ public class ProjectServiceImpl implements ProjectService {
 
     return projects.stream()
         .map(project -> new ProjectResponse(project.getProjectId(), project.getTitle(), project.getStatus()))
+        .collect(Collectors.toList());
+  }
+
+  @Override
+  public List<IssueResponse> getIssueList(Long projectId, Long accountId) {
+    List<Issue> issues = issueRepository.findByProjectIdAndAccountId(projectId, accountId);
+
+    if (issues == null) {
+      issues = new ArrayList<>();
+    }
+
+    return issues.stream()
+        .map(issue -> new IssueResponse();
         .collect(Collectors.toList());
   }
 
