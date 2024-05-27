@@ -41,6 +41,7 @@ public class ProjectServiceImpl implements ProjectService {
     this.commentRepository = commentRepository;
   }
 
+  @Override
   public List<ProjectResponse> getProjectList(Long accountId) {
     List<Project> projects = projectRepository.findByAccountId(accountId);
 
