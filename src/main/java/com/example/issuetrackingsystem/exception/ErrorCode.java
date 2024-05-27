@@ -14,6 +14,9 @@ public enum ErrorCode {
   ISSUE_DETAILS_FORBIDDEN(HttpStatus.FORBIDDEN, "이슈를 조회할 권한이 없습니다."),
   COMMENT_CREATION_FORBIDDEN(HttpStatus.FORBIDDEN, "이슈에 코멘트를 등록할 권한이 없습니다."),
   COMMENT_CREATION_BAD_REQUEST(HttpStatus.BAD_REQUEST, "이슈 코멘트 등록 요청이 올바르지 않습니다."),
+  LOGIN_FAILED(HttpStatus.UNAUTHORIZED, "로그인에 실패했습니다."),
+  USERNAME_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 존재하는 아이디입니다."),
+  PASSWORDS_DO_NOT_MATCH(HttpStatus.BAD_REQUEST, "비밀번호가 일치하지 않습니다."),
   ;
 
   private final HttpStatus httpStatus;
