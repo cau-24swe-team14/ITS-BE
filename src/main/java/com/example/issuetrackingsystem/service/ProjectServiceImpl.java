@@ -1,7 +1,9 @@
 package com.example.issuetrackingsystem.service;
 
+import com.example.issuetrackingsystem.domain.Project;
 import com.example.issuetrackingsystem.domain.ProjectAccount;
 import com.example.issuetrackingsystem.domain.key.ProjectAccountPK;
+import com.example.issuetrackingsystem.dto.ProjectResponse;
 import com.example.issuetrackingsystem.dto.ProjectTrendResponse;
 import com.example.issuetrackingsystem.dto.ProjectTrendResponse.BestIssue;
 import com.example.issuetrackingsystem.dto.ProjectTrendResponse.BestMember;
@@ -21,6 +23,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -36,6 +39,18 @@ public class ProjectServiceImpl implements ProjectService {
     this.issueRepository = issueRepository;
     this.projectAccountRepository = projectAccountRepository;
     this.commentRepository = commentRepository;
+  }
+
+  public List<ProjectResponse> getProjectList(Long accountId) {
+    List<Project> projects = projectRepository.findByAccountId(accountId);
+
+    if (projects == null) {
+      projects = new ArrayList<>();
+    }
+
+    return projects.stream()
+        .map(project -> new ProjectResponse(project.getProjectId(), project.getTitle(), project.getStatus()))
+        .collect(Collectors.toList());
   }
 
   @Override

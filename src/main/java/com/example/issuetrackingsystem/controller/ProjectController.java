@@ -1,9 +1,12 @@
 package com.example.issuetrackingsystem.controller;
 
+import com.example.issuetrackingsystem.dto.ProjectResponse;
 import com.example.issuetrackingsystem.dto.ProjectTrendResponse;
+import com.example.issuetrackingsystem.exception.ErrorCode;
 import com.example.issuetrackingsystem.exception.ITSException;
 import com.example.issuetrackingsystem.service.ProjectService;
 import jakarta.servlet.http.HttpSession;
+import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,6 +22,25 @@ public class ProjectController {
 
   public ProjectController(ProjectService projectService) {
     this.projectService = projectService;
+  }
+
+  @GetMapping
+  public ResponseEntity getProjectList(HttpSession session) {
+    Long accountId = (Long) session.getAttribute("id");
+
+    try {
+      if (accountId == null) {
+        throw new ITSException(ErrorCode.UNAUTHORIZED);
+      }
+      List<ProjectResponse> projects = projectService.getProjectList(accountId);
+      return ResponseEntity.ok(projects);
+    } catch (ITSException e) {
+      return ResponseEntity
+          .status(e.getErrorCode().getHttpStatus())
+          .body(e.getErrorCode().getMessage());
+    } //catch (Exception e) {
+//      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred.");
+//    }
   }
 
   @GetMapping("/{projectId}/trend")

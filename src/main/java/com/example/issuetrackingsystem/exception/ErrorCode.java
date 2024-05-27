@@ -16,6 +16,7 @@ public enum ErrorCode {
   COMMENT_CREATION_BAD_REQUEST(HttpStatus.BAD_REQUEST, "이슈 코멘트 등록 요청이 올바르지 않습니다."),
   PROJECT_TREND_FORBIDDEN(HttpStatus.FORBIDDEN, "프로젝트 트렌드를 조회할 권한이 없습니다."),
   PROJECT_TREND_BAD_REQUEST(HttpStatus.BAD_REQUEST, "프로젝트 트렌트 요청이 올바르지 않습니다."),
+  UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "로그인 정보가 없습니다."),
   ;
 
   private final HttpStatus httpStatus;
