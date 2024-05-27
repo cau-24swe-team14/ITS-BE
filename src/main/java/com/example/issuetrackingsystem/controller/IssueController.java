@@ -5,6 +5,7 @@ import com.example.issuetrackingsystem.dto.AddCommentResponse;
 import com.example.issuetrackingsystem.dto.AddIssueRequest;
 import com.example.issuetrackingsystem.dto.DetailsIssueResponse;
 import com.example.issuetrackingsystem.dto.ModifyIssueRequest;
+import com.example.issuetrackingsystem.dto.SuggestIssueAssigneeResponse;
 import com.example.issuetrackingsystem.exception.ITSException;
 import com.example.issuetrackingsystem.service.IssueService;
 import jakarta.servlet.http.HttpSession;
@@ -133,5 +134,32 @@ public class IssueController {
     return ResponseEntity
         .status(HttpStatus.CREATED)
         .body(addCommentResponseList);
+  }
+
+  @GetMapping("/issues/{issueId}/assignee-suggestions")
+  public ResponseEntity assigneeSuggest(HttpSession session, @PathVariable("projectId") Long projectId,
+      @PathVariable("issueId") Long issueId) {
+    Long accountId = (Long) session.getAttribute("id");
+
+//    if (accountId == null) {
+//      return ResponseEntity
+//          .status(HttpStatus.UNAUTHORIZED)
+//          .body("로그인 정보가 없습니다.");
+//    }
+    accountId = 1L;
+
+    SuggestIssueAssigneeResponse suggestIssueAssigneeResponse;
+
+    try {
+      suggestIssueAssigneeResponse = issueService.suggestAssignee(accountId, projectId, issueId);
+    } catch (ITSException e) {
+      return ResponseEntity
+          .status(e.getErrorCode().getHttpStatus())
+          .body(e.getErrorCode().getMessage());
+    }
+
+    return ResponseEntity
+        .status(HttpStatus.OK)
+        .body(suggestIssueAssigneeResponse);
   }
 }

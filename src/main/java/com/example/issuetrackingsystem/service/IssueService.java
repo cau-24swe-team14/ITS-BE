@@ -5,6 +5,7 @@ import com.example.issuetrackingsystem.dto.AddCommentResponse;
 import com.example.issuetrackingsystem.dto.AddIssueRequest;
 import com.example.issuetrackingsystem.dto.DetailsIssueResponse;
 import com.example.issuetrackingsystem.dto.ModifyIssueRequest;
+import com.example.issuetrackingsystem.dto.SuggestIssueAssigneeResponse;
 import java.util.List;
 
 public interface IssueService {
@@ -12,4 +13,6 @@ public interface IssueService {
   void modifyIssue(Long accountId, Long projectId, Long issueId, ModifyIssueRequest modifyIssueRequest);
   DetailsIssueResponse findIssue(Long accountId, Long projectId, Long issueId);
   List<AddCommentResponse> addComment(Long accountId, Long projectId, Long issueId, AddCommentRequest addCommentRequest);
+
+  SuggestIssueAssigneeResponse suggestAssignee(Long accountId, Long projectId, Long issueId);
 }

@@ -1,6 +1,7 @@
 package com.example.issuetrackingsystem.repository;
 
 import com.example.issuetrackingsystem.domain.Issue;
+import com.example.issuetrackingsystem.domain.enums.IssueKeyword;
 import com.example.issuetrackingsystem.domain.enums.IssueStatus;
 import com.example.issuetrackingsystem.domain.key.IssuePK;
 import java.time.LocalDateTime;
@@ -66,4 +67,19 @@ public interface IssueRepository extends JpaRepository<Issue, IssuePK> {
       "ORDER BY count DESC " +
       "LIMIT 1")
   Object[] findBestReporterDuringLastWeek(@Param("startDate") LocalDateTime startDate);
+
+  @Query("SELECT i.assignee.username, COUNT(*) AS assigneeCount, SUM(CASE WHEN i.status <> 4 THEN 1 ELSE 0 END) AS openIssueCount " +
+      "FROM Issue i " +
+      "WHERE i.keyword = :keyword " +
+      "GROUP BY i.assignee.username " +
+      "ORDER BY assigneeCount DESC, openIssueCount ASC "
+      + "LIMIT 1")
+  Object[] findAssigneeSuggestionByKeyword(@Param("keyword") IssueKeyword issueKeyword);
+
+  @Query("SELECT i.assignee.username, COUNT(*) AS assigneeCount, SUM(CASE WHEN i.status <> 4 THEN 1 ELSE 0 END) AS openIssueCount " +
+      "FROM Issue i " +
+      "GROUP BY i.assignee.username " +
+      "ORDER BY assigneeCount DESC, openIssueCount ASC "
+      + "LIMIT 1")
+  Object[] findAssigneeSuggestion();
 }
