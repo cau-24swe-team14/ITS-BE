@@ -65,7 +65,7 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     return issues.stream()
-        .map(issue -> new IssueResponse();
+        .map(issue -> new IssueResponse(issue.getId().getIssueId(), issue.getTitle(), issue.getStatus(), issue.getReportedDate(), issue.getDueDate()))
         .collect(Collectors.toList());
   }
 

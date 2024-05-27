@@ -33,8 +33,10 @@ public class ProjectController {
       if (accountId == null) {
         throw new ITSException(ErrorCode.UNAUTHORIZED);
       }
+
       List<ProjectResponse> projects = projectService.getProjectList(accountId);
       return ResponseEntity.ok(projects);
+
     } catch (ITSException e) {
       return ResponseEntity
           .status(e.getErrorCode().getHttpStatus())
@@ -52,8 +54,10 @@ public class ProjectController {
       if (accountId == null) {
         throw new ITSException(ErrorCode.UNAUTHORIZED);
       }
+
       List<IssueResponse> issues = projectService.getIssueList(projectId, accountId);
       return ResponseEntity.ok(issues);
+
     } catch (ITSException e) {
       return ResponseEntity
           .status(e.getErrorCode().getHttpStatus())

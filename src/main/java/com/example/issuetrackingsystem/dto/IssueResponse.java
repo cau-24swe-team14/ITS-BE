@@ -16,5 +16,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class IssueResponse {
-
+    private Long issueId;
+    private String title;
+    private IssueStatus status;
+    private LocalDateTime reportedDate;
+    private LocalDate dueDate;
 }
