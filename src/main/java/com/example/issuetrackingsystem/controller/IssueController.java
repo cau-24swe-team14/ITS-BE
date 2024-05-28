@@ -32,9 +32,9 @@ public class IssueController {
   }
 
   @PostMapping("/issues")
-  public ResponseEntity issueAdd(HttpSession session, @PathVariable("projectId") Long projectId,
-      @RequestBody AddIssueRequest addIssueRequest) {
-    Long accountId = (Long) session.getAttribute("id");
+    public ResponseEntity issueAdd(HttpSession session, @PathVariable("projectId") Long projectId,
+        @RequestBody AddIssueRequest addIssueRequest) {
+      Long accountId = (Long) session.getAttribute("id");
 
 //    if (accountId == null) {
 //      return ResponseEntity
