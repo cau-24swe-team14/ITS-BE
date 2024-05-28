@@ -11,6 +11,7 @@ import com.example.issuetrackingsystem.dto.AddProjectRequest.ProjectMemberData;
 import com.example.issuetrackingsystem.dto.DetailsProjectResponse;
 import com.example.issuetrackingsystem.dto.DetailsProjectResponse.IssueData;
 import com.example.issuetrackingsystem.dto.DetailsProjectResponse.MemberData;
+import com.example.issuetrackingsystem.dto.ModifyProjectRequest;
 import com.example.issuetrackingsystem.dto.ProjectResponse;
 import com.example.issuetrackingsystem.dto.ProjectResponse.ProjectData;
 import com.example.issuetrackingsystem.dto.ProjectTrendResponse;
@@ -123,7 +124,7 @@ public class ProjectServiceImpl implements ProjectService {
   }
 
   @Override
-  public void addProject(Long accountId, AddProjectRequest addProjectRequest) {
+  public String addProject(Long accountId, AddProjectRequest addProjectRequest) {
     if (accountId != 1L) {
       throw new ITSException(ErrorCode.PROJECT_CREATION_FORBIDDEN);
     }
@@ -146,6 +147,36 @@ public class ProjectServiceImpl implements ProjectService {
           .role(ProjectAccountRole.values()[member.getRole()])
           .build());
     }
+    return "/projects/" + project.getProjectId();
+  }
+
+  @Override
+  public void modifyProject(Long accountId, Long projectId,
+      ModifyProjectRequest modifyProjectRequest) {
+    if (accountId != 1L) {
+      throw new ITSException(ErrorCode.PROJECT_UPDATE_FORBIDDEN);
+    }
+    Project project = projectRepository.findById(projectId)
+        .orElseThrow(() -> new ITSException(ErrorCode.PROJECT_UPDATE_NOT_FOUND));
+
+    Project.ProjectBuilder projectBuilder = Project.builder()
+        .projectId(projectId)
+        .date(project.getDate())
+        .status(project.getStatus());
+
+    if (modifyProjectRequest.getTitle() == null) {
+      projectBuilder.title(project.getTitle());
+    } else {
+      projectBuilder.title(modifyProjectRequest.getTitle());
+    }
+
+    if (modifyProjectRequest.getDescription() == null) {
+      projectBuilder.description(project.getDescription());
+    } else {
+      projectBuilder.description(modifyProjectRequest.getDescription());
+    }
+
+    projectRepository.save(projectBuilder.build());
   }
 
   @Override
