@@ -1,5 +1,6 @@
 package com.example.issuetrackingsystem.controller;
 
+import com.example.issuetrackingsystem.dto.AddProjectRequest;
 import com.example.issuetrackingsystem.dto.DetailsProjectResponse;
 import com.example.issuetrackingsystem.dto.ProjectResponse;
 import com.example.issuetrackingsystem.dto.ProjectTrendResponse;
@@ -12,6 +13,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -70,6 +73,27 @@ public class ProjectController {
     return ResponseEntity.
         status(HttpStatus.OK)
         .body(detailsProjectResponse);
+  }
+
+  @PostMapping
+  public ResponseEntity addProject(HttpSession session, @RequestBody AddProjectRequest addProjectRequest) {
+    Long accountId = (Long) session.getAttribute("id");
+
+    if (accountId == null) {
+      throw new ITSException(ErrorCode.UNAUTHORIZED);
+    }
+
+    try {
+      projectService.addProject(accountId, addProjectRequest);
+    } catch (ITSException e) {
+      return ResponseEntity
+          .status(e.getErrorCode().getHttpStatus())
+          .body(e.getErrorCode().getMessage());
+    }
+
+    return ResponseEntity.
+        status(HttpStatus.CREATED)
+        .build();
   }
 
   @GetMapping("/{projectId}/trend")

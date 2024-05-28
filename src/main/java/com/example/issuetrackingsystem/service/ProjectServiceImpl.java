@@ -1,11 +1,13 @@
 package com.example.issuetrackingsystem.service;
 
+import com.example.issuetrackingsystem.domain.Account;
 import com.example.issuetrackingsystem.domain.Issue;
 import com.example.issuetrackingsystem.domain.Project;
 import com.example.issuetrackingsystem.domain.ProjectAccount;
 import com.example.issuetrackingsystem.domain.enums.ProjectAccountRole;
-import com.example.issuetrackingsystem.domain.enums.ProjectStatus;
 import com.example.issuetrackingsystem.domain.key.ProjectAccountPK;
+import com.example.issuetrackingsystem.dto.AddProjectRequest;
+import com.example.issuetrackingsystem.dto.AddProjectRequest.ProjectMemberData;
 import com.example.issuetrackingsystem.dto.DetailsProjectResponse;
 import com.example.issuetrackingsystem.dto.DetailsProjectResponse.IssueData;
 import com.example.issuetrackingsystem.dto.DetailsProjectResponse.MemberData;
@@ -28,7 +30,6 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,13 +38,15 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class ProjectServiceImpl implements ProjectService {
+  private final AccountRepository accountRepository;
   private final ProjectRepository projectRepository;
   private final IssueRepository issueRepository;
   private final ProjectAccountRepository projectAccountRepository;
   private final CommentRepository commentRepository;
 
-  public ProjectServiceImpl(ProjectRepository projectRepository, IssueRepository issueRepository,
+  public ProjectServiceImpl(AccountRepository accountRepository, ProjectRepository projectRepository, IssueRepository issueRepository,
       ProjectAccountRepository projectAccountRepository, CommentRepository commentRepository) {
+    this.accountRepository = accountRepository;
     this.projectRepository = projectRepository;
     this.issueRepository = issueRepository;
     this.projectAccountRepository = projectAccountRepository;
@@ -116,6 +119,32 @@ public class ProjectServiceImpl implements ProjectService {
                   .build())
               .collect(Collectors.toList()))
           .build();
+    }
+  }
+
+  @Override
+  public void addProject(Long accountId, AddProjectRequest addProjectRequest) {
+    if (accountId != 0L) {
+      throw new ITSException(ErrorCode.PROJECT_CREATION_FORBIDDEN);
+    }
+
+    Project project = projectRepository.save(Project.builder()
+        .title(addProjectRequest.getTitle())
+        .description(addProjectRequest.getDescription())
+        .build());
+
+    for(ProjectMemberData member: addProjectRequest.getMember()) {
+      Account account = accountRepository.findByUsername(member.getUsername())
+          .orElseThrow(() -> new ITSException(ErrorCode.PROJECT_CREATION_BAD_REQUEST));
+      projectAccountRepository.save(ProjectAccount.builder()
+          .id(ProjectAccountPK.builder()
+              .projectId(project.getProjectId())
+              .accountId(account.getAccountId())
+              .build())
+          .project(project)
+          .account(account)
+          .role(ProjectAccountRole.values()[member.getRole()])
+          .build());
     }
   }
 
