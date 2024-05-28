@@ -1,5 +1,6 @@
 package com.example.issuetrackingsystem.service;
 
+import com.example.issuetrackingsystem.dto.AddProjectRequest;
 import com.example.issuetrackingsystem.dto.DetailsProjectResponse;
 import com.example.issuetrackingsystem.dto.ProjectResponse;
 import com.example.issuetrackingsystem.dto.ProjectTrendResponse;
@@ -9,4 +10,6 @@ public interface ProjectService {
   ProjectResponse getProjectList(Long accountId);
   DetailsProjectResponse findProject(Long projectId, Long accountId);
   ProjectTrendResponse findProjectTrend(Long accountId, Long projectId, String category);
+
+  void addProject(Long accountId, AddProjectRequest addProjectRequest);
 }
