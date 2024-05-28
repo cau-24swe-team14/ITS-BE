@@ -1,9 +1,14 @@
 package com.example.issuetrackingsystem.service;
 
+import com.example.issuetrackingsystem.domain.Issue;
 import com.example.issuetrackingsystem.domain.Project;
 import com.example.issuetrackingsystem.domain.ProjectAccount;
+import com.example.issuetrackingsystem.domain.enums.ProjectAccountRole;
 import com.example.issuetrackingsystem.domain.enums.ProjectStatus;
 import com.example.issuetrackingsystem.domain.key.ProjectAccountPK;
+import com.example.issuetrackingsystem.dto.DetailsProjectResponse;
+import com.example.issuetrackingsystem.dto.DetailsProjectResponse.IssueData;
+import com.example.issuetrackingsystem.dto.DetailsProjectResponse.MemberData;
 import com.example.issuetrackingsystem.dto.ProjectResponse;
 import com.example.issuetrackingsystem.dto.ProjectResponse.ProjectData;
 import com.example.issuetrackingsystem.dto.ProjectTrendResponse;
@@ -21,6 +26,7 @@ import com.example.issuetrackingsystem.repository.ProjectRepository;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -62,6 +68,55 @@ public class ProjectServiceImpl implements ProjectService {
                 .build())
             .collect(Collectors.toList()))
         .build();
+  }
+
+  @Override
+  public DetailsProjectResponse findProject(Long projectId, Long accountId) {
+    ProjectAccount projectAccount = projectAccountRepository.findById(ProjectAccountPK.builder()
+        .accountId(accountId)
+        .projectId(projectId)
+        .build()).orElseThrow(() -> new ITSException(ErrorCode.PROJECT_DETAIL_FORBIDDEN));
+
+    Project project = projectRepository.findById(projectId)
+        .orElseThrow(() -> new ITSException(ErrorCode.PROJECT_DETAIL_NOT_FOUND));
+
+    List<Issue> issues = issueRepository.findByProjectIdAndAccountId(projectId, accountId);
+
+    if (issues == null) {
+      issues = new ArrayList<>();
+    }
+
+    List<ProjectAccount> projectAccountList = projectAccountRepository.findById_ProjectId(projectId);
+
+    DetailsProjectResponse.DetailsProjectResponseBuilder detailsProjectResponseBuilder = DetailsProjectResponse.builder()
+        .accountRole(projectAccount.getRole().ordinal())
+        .id(projectId)
+        .title(project.getTitle())
+        .description(project.getDescription())
+        .date(project.getDate().format(DateTimeFormatter.ISO_DATE))
+        .status(project.getStatus().ordinal())
+        .member(projectAccountList.stream()
+            .map(member -> MemberData.builder()
+                .id(member.getAccount().getAccountId())
+                .username(member.getAccount().getUsername())
+                .role(member.getRole().ordinal())
+                .build())
+            .collect(Collectors.toList()));
+
+    if (issues.isEmpty()) {
+      return detailsProjectResponseBuilder.build();
+    } else {
+      return detailsProjectResponseBuilder.issue(issues.stream()
+              .map(issue -> IssueData.builder()
+                  .id(issue.getId().getIssueId())
+                  .title(issue.getTitle())
+                  .status(issue.getStatus().ordinal())
+                  .reportedDate(issue.getReportedDate().format(DateTimeFormatter.ISO_DATE))
+                  .dueDate(issue.getDueDate().format(DateTimeFormatter.ISO_DATE))
+                  .build())
+              .collect(Collectors.toList()))
+          .build();
+    }
   }
 
   @Override

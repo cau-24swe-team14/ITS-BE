@@ -1,5 +1,6 @@
 package com.example.issuetrackingsystem.controller;
 
+import com.example.issuetrackingsystem.dto.DetailsProjectResponse;
 import com.example.issuetrackingsystem.dto.ProjectResponse;
 import com.example.issuetrackingsystem.dto.ProjectTrendResponse;
 import com.example.issuetrackingsystem.exception.ErrorCode;
@@ -32,7 +33,7 @@ public class ProjectController {
       throw new ITSException(ErrorCode.UNAUTHORIZED);
     }
 
-    List<ProjectResponse> projects;
+    ProjectResponse projects;
 
     try {
       projects = projectService.getProjectList(accountId);
@@ -45,6 +46,30 @@ public class ProjectController {
     return ResponseEntity.
         status(HttpStatus.OK)
         .body(projects);
+  }
+
+  @GetMapping("/{projectId}")
+  public ResponseEntity ProjectDetails(HttpSession session, @PathVariable("projectId") Long projectId) {
+    Long accountId = (Long) session.getAttribute("id");
+
+    if (accountId == null) {
+      throw new ITSException(ErrorCode.UNAUTHORIZED);
+    }
+
+    DetailsProjectResponse detailsProjectResponse;
+
+    try {
+      detailsProjectResponse = projectService.findProject(projectId, accountId);
+
+    } catch (ITSException e) {
+      return ResponseEntity
+          .status(e.getErrorCode().getHttpStatus())
+          .body(e.getErrorCode().getMessage());
+    }
+
+    return ResponseEntity.
+        status(HttpStatus.OK)
+        .body(detailsProjectResponse);
   }
 
   @GetMapping("/{projectId}/trend")
