@@ -6,6 +6,7 @@ import com.example.issuetrackingsystem.dto.AddIssueRequest;
 import com.example.issuetrackingsystem.dto.DetailsIssueResponse;
 import com.example.issuetrackingsystem.dto.ModifyIssueRequest;
 import com.example.issuetrackingsystem.dto.SuggestIssueAssigneeResponse;
+import com.example.issuetrackingsystem.exception.ErrorCode;
 import com.example.issuetrackingsystem.exception.ITSException;
 import com.example.issuetrackingsystem.service.IssueService;
 import jakarta.servlet.http.HttpSession;
@@ -36,12 +37,9 @@ public class IssueController {
         @RequestBody AddIssueRequest addIssueRequest) {
       Long accountId = (Long) session.getAttribute("id");
 
-//    if (accountId == null) {
-//      return ResponseEntity
-//          .status(HttpStatus.UNAUTHORIZED)
-//          .body("로그인 정보가 없습니다.");
-//    }
-    accountId = 3L;
+    if (accountId == null) {
+      throw new ITSException(ErrorCode.UNAUTHORIZED);
+    }
 
     String location;
 
@@ -63,12 +61,9 @@ public class IssueController {
       @PathVariable("issueId") Long issueId, @RequestBody ModifyIssueRequest modifyIssueRequest) {
     Long accountId = (Long) session.getAttribute("id");
 
-//    if (accountId == null) {
-//      return ResponseEntity
-//          .status(HttpStatus.UNAUTHORIZED)
-//          .body("로그인 정보가 없습니다.");
-//    }
-    accountId = 1L;
+    if (accountId == null) {
+      throw new ITSException(ErrorCode.UNAUTHORIZED);
+    }
 
     try {
       issueService.modifyIssue(accountId, projectId, issueId, modifyIssueRequest);
@@ -87,12 +82,9 @@ public class IssueController {
   public ResponseEntity issueDetails(HttpSession session, @PathVariable("projectId") Long projectId, @PathVariable("issueId") Long issueId) {
     Long accountId = (Long) session.getAttribute("id");
 
-//    if (accountId == null) {
-//      return ResponseEntity
-//          .status(HttpStatus.UNAUTHORIZED)
-//          .body("로그인 정보가 없습니다.");
-//    }
-    accountId = 1L;
+    if (accountId == null) {
+      throw new ITSException(ErrorCode.UNAUTHORIZED);
+    }
 
     DetailsIssueResponse detailsIssueResponse;
 
@@ -114,12 +106,9 @@ public class IssueController {
       @PathVariable("issueId") Long issueId, @RequestBody AddCommentRequest addCommentRequest) {
     Long accountId = (Long) session.getAttribute("id");
 
-//    if (accountId == null) {
-//      return ResponseEntity
-//          .status(HttpStatus.UNAUTHORIZED)
-//          .body("로그인 정보가 없습니다.");
-//    }
-    accountId = 3L;
+    if (accountId == null) {
+      throw new ITSException(ErrorCode.UNAUTHORIZED);
+    }
 
     List<AddCommentResponse> addCommentResponseList;
 
@@ -141,12 +130,9 @@ public class IssueController {
       @PathVariable("issueId") Long issueId) {
     Long accountId = (Long) session.getAttribute("id");
 
-//    if (accountId == null) {
-//      return ResponseEntity
-//          .status(HttpStatus.UNAUTHORIZED)
-//          .body("로그인 정보가 없습니다.");
-//    }
-    accountId = 1L;
+    if (accountId == null) {
+      throw new ITSException(ErrorCode.UNAUTHORIZED);
+    }
 
     SuggestIssueAssigneeResponse suggestIssueAssigneeResponse;
 
