@@ -2,6 +2,7 @@ package com.example.issuetrackingsystem.repository;
 
 import com.example.issuetrackingsystem.domain.Issue;
 import com.example.issuetrackingsystem.domain.enums.IssueKeyword;
+import com.example.issuetrackingsystem.domain.enums.IssuePriority;
 import com.example.issuetrackingsystem.domain.enums.IssueStatus;
 import com.example.issuetrackingsystem.domain.key.IssuePK;
 import java.time.LocalDateTime;
@@ -83,6 +84,24 @@ public interface IssueRepository extends JpaRepository<Issue, IssuePK> {
       + "LIMIT 1")
   Object[] findAssigneeSuggestion();
 
-  @Query("SELECT i FROM Issue i WHERE i.id.projectId = :projectId AND (i.reporter.id = :accountId OR i.manager.id = :accountId OR i.assignee.id = :accountId OR i.fixer.id = :accountId)")
+  @Query("SELECT i FROM Issue i WHERE i.id.projectId = :projectId AND (i.reporter.accountId = :accountId OR i.manager.accountId = :accountId OR i.assignee.accountId = :accountId OR i.fixer.accountId = :accountId)")
   List<Issue> findByProjectIdAndAccountId(Long projectId, Long accountId);
+
+  List<Issue> findById_ProjectIdAndTitle(Long projectId, String title);
+
+  List<Issue> findById_ProjectIdAndDescription(Long projectId, String description);
+
+  List<Issue> findById_ProjectIdAndKeyword(Long projectId, IssueKeyword keyword);
+
+  List<Issue> findById_ProjectIdAndReporter_Username(Long projectId, String reporter);
+
+  List<Issue> findById_ProjectIdAndManager_Username(Long projectId, String manager);
+
+  List<Issue> findById_ProjectIdAndAssignee_Username(Long projectId, String assignee);
+
+  List<Issue> findById_ProjectIdAndFixer_Username(Long projectId, String fixer);
+
+  List<Issue> findById_ProjectIdAndPriority(Long projectId, IssuePriority priority);
+
+  List<Issue> findById_ProjectIdAndStatus(Long projectId, IssueStatus status);
 }

@@ -18,6 +18,7 @@ import com.example.issuetrackingsystem.dto.AddCommentResponse;
 import com.example.issuetrackingsystem.dto.AddIssueRequest;
 import com.example.issuetrackingsystem.dto.DetailsIssueResponse;
 import com.example.issuetrackingsystem.dto.ModifyIssueRequest;
+import com.example.issuetrackingsystem.dto.SearchIssueResponse;
 import com.example.issuetrackingsystem.dto.SuggestIssueAssigneeResponse;
 import com.example.issuetrackingsystem.exception.ErrorCode;
 import com.example.issuetrackingsystem.exception.ITSException;
@@ -26,6 +27,7 @@ import com.example.issuetrackingsystem.repository.CommentRepository;
 import com.example.issuetrackingsystem.repository.IssueRepository;
 import com.example.issuetrackingsystem.repository.ProjectAccountRepository;
 import com.example.issuetrackingsystem.repository.ProjectRepository;
+import jakarta.servlet.http.HttpSession;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -33,8 +35,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -465,5 +469,63 @@ public class IssueServiceImpl implements IssueService {
     }
 
     return suggestIssueAssigneeResponse;
+  }
+
+  @Override
+  public List<SearchIssueResponse> searchIssue(Long accountId, Long projectId, Map<String, String> searchKey) {
+    if (accountId != 1L) {
+      projectAccountRepository.findById(ProjectAccountPK.builder()
+          .accountId(accountId)
+          .projectId(projectId).build()).orElseThrow(() -> new ITSException(ErrorCode.ISSUE_DETAILS_FORBIDDEN));
+    }
+    String key = null, value = null;
+    for (String k: searchKey.keySet()) {
+      key = k;
+      value = searchKey.get(k);
+    }
+
+    List<Issue> issueList = new ArrayList<>();
+
+    switch (key) {
+      case "title":
+        issueList = issueRepository.findById_ProjectIdAndTitle(projectId, value);
+        break;
+      case "description":
+        issueList = issueRepository.findById_ProjectIdAndDescription(projectId, value);
+        break;
+      case "keyword":
+        issueList = issueRepository.findById_ProjectIdAndKeyword(projectId, IssueKeyword.valueOf(value));
+        break;
+      case "reporter":
+        issueList = issueRepository.findById_ProjectIdAndReporter_Username(projectId, value);
+        break;
+      case "manager":
+        issueList = issueRepository.findById_ProjectIdAndManager_Username(projectId, value);
+        break;
+      case "assignee":
+        issueList = issueRepository.findById_ProjectIdAndAssignee_Username(projectId, value);
+        break;
+      case "fixer":
+        issueList = issueRepository.findById_ProjectIdAndFixer_Username(projectId, value);
+        break;
+      case "priority":
+        issueList = issueRepository.findById_ProjectIdAndPriority(projectId, IssuePriority.valueOf(value));
+        break;
+      case "status":
+        issueList = issueRepository.findById_ProjectIdAndStatus(projectId, IssueStatus.valueOf(value));
+        break;
+      default:
+        throw new ITSException(ErrorCode.ISSUE_SEARCH_BAD_REQUEST);
+    }
+
+    return issueList.stream()
+        .map(issue -> SearchIssueResponse.builder()
+            .id(issue.getId().getIssueId())
+            .title(issue.getTitle())
+            .status(issue.getStatus().ordinal())
+            .reportedDate(issue.getReportedDate().format(DateTimeFormatter.ISO_DATE))
+            .dueDate(issue.getDueDate().format(DateTimeFormatter.ISO_DATE))
+            .build())
+        .collect(Collectors.toList());
   }
 }

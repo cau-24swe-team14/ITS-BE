@@ -28,7 +28,7 @@ public enum ErrorCode {
   PROJECT_CREATION_BAD_REQUEST(HttpStatus.BAD_REQUEST, "프로젝트 생성 요청이 올바르지 않습니다."),
   PROJECT_UPDATE_FORBIDDEN(HttpStatus.FORBIDDEN, "프로젝트를 수정할 권한이 없습니다."),
   PROJECT_UPDATE_NOT_FOUND(HttpStatus.NOT_FOUND, "요청한 프로젝트를 찾을 수 없습니다."),
-  ;
+  ISSUE_SEARCH_BAD_REQUEST(HttpStatus.BAD_REQUEST, "이슈 검색 요청이 올바르지 않습니다.");
 
   private final HttpStatus httpStatus;
   private final String message;
