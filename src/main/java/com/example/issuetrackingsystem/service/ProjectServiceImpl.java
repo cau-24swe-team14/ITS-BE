@@ -1,7 +1,11 @@
 package com.example.issuetrackingsystem.service;
 
+import com.example.issuetrackingsystem.domain.Project;
 import com.example.issuetrackingsystem.domain.ProjectAccount;
+import com.example.issuetrackingsystem.domain.enums.ProjectStatus;
 import com.example.issuetrackingsystem.domain.key.ProjectAccountPK;
+import com.example.issuetrackingsystem.dto.ProjectResponse;
+import com.example.issuetrackingsystem.dto.ProjectResponse.ProjectData;
 import com.example.issuetrackingsystem.dto.ProjectTrendResponse;
 import com.example.issuetrackingsystem.dto.ProjectTrendResponse.BestIssue;
 import com.example.issuetrackingsystem.dto.ProjectTrendResponse.BestMember;
@@ -18,9 +22,11 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -36,6 +42,26 @@ public class ProjectServiceImpl implements ProjectService {
     this.issueRepository = issueRepository;
     this.projectAccountRepository = projectAccountRepository;
     this.commentRepository = commentRepository;
+  }
+
+  @Override
+  public ProjectResponse getProjectList(Long accountId) {
+    List<Project> projects = projectRepository.findByAccountId(accountId);
+
+    if (projects == null) {
+      projects = new ArrayList<>();
+    }
+
+    return ProjectResponse.builder()
+        .isAdmin(accountId == 0 ? 1 : 0)
+        .project(projects.stream()
+            .map(project -> ProjectData.builder()
+                .id(project.getProjectId())
+                .title(project.getTitle())
+                .status(project.getStatus().ordinal())
+                .build())
+            .collect(Collectors.toList()))
+        .build();
   }
 
   @Override

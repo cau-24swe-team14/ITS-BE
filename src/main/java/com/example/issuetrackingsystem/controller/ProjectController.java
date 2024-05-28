@@ -1,9 +1,12 @@
 package com.example.issuetrackingsystem.controller;
 
+import com.example.issuetrackingsystem.dto.ProjectResponse;
 import com.example.issuetrackingsystem.dto.ProjectTrendResponse;
+import com.example.issuetrackingsystem.exception.ErrorCode;
 import com.example.issuetrackingsystem.exception.ITSException;
 import com.example.issuetrackingsystem.service.ProjectService;
 import jakarta.servlet.http.HttpSession;
+import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,6 +22,29 @@ public class ProjectController {
 
   public ProjectController(ProjectService projectService) {
     this.projectService = projectService;
+  }
+
+  @GetMapping
+  public ResponseEntity getProjectList(HttpSession session) {
+    Long accountId = (Long) session.getAttribute("id");
+
+    if (accountId == null) {
+      throw new ITSException(ErrorCode.UNAUTHORIZED);
+    }
+
+    List<ProjectResponse> projects;
+
+    try {
+      projects = projectService.getProjectList(accountId);
+    } catch (ITSException e) {
+      return ResponseEntity
+          .status(e.getErrorCode().getHttpStatus())
+          .body(e.getErrorCode().getMessage());
+    }
+
+    return ResponseEntity.
+        status(HttpStatus.OK)
+        .body(projects);
   }
 
   @GetMapping("/{projectId}/trend")
