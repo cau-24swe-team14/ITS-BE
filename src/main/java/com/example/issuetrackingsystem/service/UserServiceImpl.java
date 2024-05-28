@@ -23,6 +23,7 @@ public class UserServiceImpl implements UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
+    @Override
     public Long login(LoginRequest loginRequest) throws ITSException {
         Account account = accountRepository.findByUsername(loginRequest.getUsername())
             .orElseThrow(() -> new ITSException(ErrorCode.LOGIN_FAILED));
@@ -34,6 +35,7 @@ public class UserServiceImpl implements UserService {
         return account.getAccountId();
     }
 
+    @Override
     public Long signUp(SignUpRequest signUpRequest) throws ITSException {
         if (accountRepository.findByUsername(signUpRequest.getUsername()).isPresent()) {
             throw new ITSException(ErrorCode.USERNAME_ALREADY_EXISTS);
