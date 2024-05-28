@@ -302,9 +302,10 @@ public class IssueServiceImpl implements IssueService {
   @Override
   @Transactional(readOnly = true)
   public DetailsIssueResponse findIssue(Long accountId, Long projectId, Long issueId) {
+    ProjectAccount projectAccount = null;
     // 사용자가 Admin이거나 해당 프로젝트에 속해 있는지 검증
     if (accountId != 0) {
-      projectAccountRepository.findById(ProjectAccountPK.builder()
+       projectAccount = projectAccountRepository.findById(ProjectAccountPK.builder()
           .accountId(accountId)
           .projectId(projectId).build()).orElseThrow(() -> new ITSException(ErrorCode.ISSUE_DETAILS_FORBIDDEN));
     }
@@ -343,6 +344,7 @@ public class IssueServiceImpl implements IssueService {
         .dueDate(issue.getDueDate().format(DateTimeFormatter.ISO_DATE))
         .closedDate(issue.getClosedDate() != null ? issue.getClosedDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) : null)
         .comment(addCommentResponseList)
+        .accountRole(projectAccount.getRole().ordinal())
         .build();
 
     return detailsIssueResponse;

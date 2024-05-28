@@ -30,4 +30,5 @@ public class DetailsIssueResponse {
   @DateTimeFormat(pattern = "yyyy-MM-dd")
   private String closedDate;
   private List<AddCommentResponse> comment;
+  private Integer accountRole;
 }
