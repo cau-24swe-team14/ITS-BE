@@ -39,10 +39,6 @@ public class UserServiceImpl implements UserService {
             throw new ITSException(ErrorCode.USERNAME_ALREADY_EXISTS);
         }
 
-        if (!signUpRequest.getPassword().equals(signUpRequest.getPasswordCheck())) {
-            throw new ITSException(ErrorCode.PASSWORDS_DO_NOT_MATCH);
-        }
-
         String encodedPassword = passwordEncoder.encode(signUpRequest.getPassword());
 
         Account newAccount = Account.builder()
