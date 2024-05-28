@@ -18,6 +18,7 @@ import com.example.issuetrackingsystem.dto.AddCommentResponse;
 import com.example.issuetrackingsystem.dto.AddIssueRequest;
 import com.example.issuetrackingsystem.dto.DetailsIssueResponse;
 import com.example.issuetrackingsystem.dto.ModifyIssueRequest;
+import com.example.issuetrackingsystem.dto.SuggestIssueAssigneeResponse;
 import com.example.issuetrackingsystem.exception.ErrorCode;
 import com.example.issuetrackingsystem.exception.ITSException;
 import com.example.issuetrackingsystem.repository.AccountRepository;
@@ -33,6 +34,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Random;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -300,9 +302,10 @@ public class IssueServiceImpl implements IssueService {
   @Override
   @Transactional(readOnly = true)
   public DetailsIssueResponse findIssue(Long accountId, Long projectId, Long issueId) {
+    ProjectAccount projectAccount = null;
     // 사용자가 Admin이거나 해당 프로젝트에 속해 있는지 검증
     if (accountId != 0) {
-      projectAccountRepository.findById(ProjectAccountPK.builder()
+       projectAccount = projectAccountRepository.findById(ProjectAccountPK.builder()
           .accountId(accountId)
           .projectId(projectId).build()).orElseThrow(() -> new ITSException(ErrorCode.ISSUE_DETAILS_FORBIDDEN));
     }
@@ -341,6 +344,7 @@ public class IssueServiceImpl implements IssueService {
         .dueDate(issue.getDueDate().format(DateTimeFormatter.ISO_DATE))
         .closedDate(issue.getClosedDate() != null ? issue.getClosedDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) : null)
         .comment(addCommentResponseList)
+        .accountRole(projectAccount.getRole().ordinal())
         .build();
 
     return detailsIssueResponse;
@@ -395,5 +399,71 @@ public class IssueServiceImpl implements IssueService {
     }
 
     return addCommentResponseList;
+  }
+
+  @Override
+  public SuggestIssueAssigneeResponse suggestAssignee(Long accountId, Long projectId,
+      Long issueId) {
+    // 사용자가 해당 프로젝트의 PL인지 검증
+    ProjectAccount projectAccount = projectAccountRepository.findById(ProjectAccountPK.builder()
+            .accountId(accountId)
+            .projectId(projectId).build())
+        .orElseThrow(() -> new ITSException(ErrorCode.ISSUE_ASSIGNEE_SUGGESTION_FORBIDDEN));
+
+    if (projectAccount.getRole() != ProjectAccountRole.PL) {
+      throw new ITSException(ErrorCode.ISSUE_ASSIGNEE_SUGGESTION_FORBIDDEN);
+    }
+
+    Issue issue = issueRepository.findById(IssuePK.builder()
+            .projectId(projectId)
+            .issueId(issueId)
+            .build())
+        .orElseThrow(() -> new ITSException(ErrorCode.ISSUE_ASSIGNEE_SUGGESTION_BAD_REQUEST));
+
+    IssueKeyword issueKeyword = issue.getKeyword();
+
+    SuggestIssueAssigneeResponse suggestIssueAssigneeResponse;
+
+    if (issueKeyword == null) {
+      Object[] assignee = issueRepository.findAssigneeSuggestion();
+      if (assignee.length == 0) {
+        List<ProjectAccount> devs = projectAccountRepository.findByProjectProjectIdAndRole(projectId, ProjectAccountRole.dev);
+        if (devs.isEmpty()) {
+          suggestIssueAssigneeResponse = SuggestIssueAssigneeResponse.builder()
+              .username("There are no suitable dev.")
+              .build();
+        } else {
+          ProjectAccount randomDev = devs.get(new Random().nextInt(devs.size()));
+          suggestIssueAssigneeResponse = SuggestIssueAssigneeResponse.builder()
+              .username(randomDev.getAccount().getUsername())
+              .build();
+        }
+      } else {
+        suggestIssueAssigneeResponse = SuggestIssueAssigneeResponse.builder()
+            .username((String) ((Object[]) assignee[0])[0])
+            .build();
+      }
+    } else {
+      Object[] assignee = issueRepository.findAssigneeSuggestionByKeyword(issueKeyword);
+      if (assignee.length == 0) {
+        List<ProjectAccount> devs = projectAccountRepository.findByProjectProjectIdAndRole(projectId, ProjectAccountRole.dev);
+        if (devs.isEmpty()) {
+          suggestIssueAssigneeResponse = SuggestIssueAssigneeResponse.builder()
+              .username("There are no suitable dev.")
+              .build();
+        } else {
+          ProjectAccount randomDev = devs.get(new Random().nextInt(devs.size()));
+          suggestIssueAssigneeResponse = SuggestIssueAssigneeResponse.builder()
+              .username(randomDev.getAccount().getUsername())
+              .build();
+        }
+      } else {
+        suggestIssueAssigneeResponse = SuggestIssueAssigneeResponse.builder()
+            .username((String) ((Object[]) assignee[0])[0])
+            .build();
+      }
+    }
+
+    return suggestIssueAssigneeResponse;
   }
 }
