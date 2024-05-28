@@ -26,10 +26,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public Long login(LoginRequest loginRequest) throws ITSException {
         Account account = accountRepository.findByUsername(loginRequest.getUsername())
-            .orElseThrow(() -> new ITSException(ErrorCode.LOGIN_FAILED));
+            .orElseThrow(() -> new ITSException(ErrorCode.USERNAME_NOT_FOUND));
 
         if (!passwordEncoder.matches(loginRequest.getPassword(), account.getPassword())) {
-            throw new ITSException(ErrorCode.LOGIN_FAILED);
+            throw new ITSException(ErrorCode.INVALID_PASSWORD);
         }
 
         return account.getAccountId();
