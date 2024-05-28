@@ -28,19 +28,23 @@ public class ProjectController {
   public ResponseEntity getProjectList(HttpSession session) {
     Long accountId = (Long) session.getAttribute("id");
 
+    if (accountId == null) {
+      throw new ITSException(ErrorCode.UNAUTHORIZED);
+    }
+
+    List<ProjectResponse> projects;
+
     try {
-      if (accountId == null) {
-        throw new ITSException(ErrorCode.UNAUTHORIZED);
-      }
-      List<ProjectResponse> projects = projectService.getProjectList(accountId);
-      return ResponseEntity.ok(projects);
+      projects = projectService.getProjectList(accountId);
     } catch (ITSException e) {
       return ResponseEntity
           .status(e.getErrorCode().getHttpStatus())
           .body(e.getErrorCode().getMessage());
-    } //catch (Exception e) {
-//      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred.");
-//    }
+    }
+
+    return ResponseEntity.
+        status(HttpStatus.OK)
+        .body(projects);
   }
 
   @GetMapping("/{projectId}/trend")
