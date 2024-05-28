@@ -43,12 +43,11 @@ public class UserServiceImpl implements UserService {
 
         String encodedPassword = passwordEncoder.encode(signUpRequest.getPassword());
 
-        Account newAccount = Account.builder()
+        Account newAccount = accountRepository.save(Account.builder()
             .username(signUpRequest.getUsername())
             .password(encodedPassword)
-            .build();
+            .build());
 
-        accountRepository.save(newAccount);
         return newAccount.getAccountId();
     }
 
