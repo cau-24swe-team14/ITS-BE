@@ -82,4 +82,7 @@ public interface IssueRepository extends JpaRepository<Issue, IssuePK> {
       "ORDER BY assigneeCount DESC, openIssueCount ASC "
       + "LIMIT 1")
   Object[] findAssigneeSuggestion();
+
+  @Query("SELECT i FROM Issue i WHERE i.id.projectId = :projectId AND (i.reporter.id = :accountId OR i.manager.id = :accountId OR i.assignee.id = :accountId OR i.fixer.id = :accountId)")
+  List<Issue> findByProjectIdAndAccountId(Long projectId, Long accountId);
 }

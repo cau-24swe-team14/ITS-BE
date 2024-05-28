@@ -8,4 +8,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ProjectAccountRepository extends JpaRepository<ProjectAccount, ProjectAccountPK> {
   List<ProjectAccount> findByProjectProjectIdAndRole(Long projectId, ProjectAccountRole role);
+  List<ProjectAccount> findById_ProjectId(Long projectId);
 }
