@@ -62,7 +62,7 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     return ProjectResponse.builder()
-        .isAdmin(accountId == 0 ? 1 : 0)
+        .isAdmin(accountId == 1L ? 1 : 0)
         .project(projects.stream()
             .map(project -> ProjectData.builder()
                 .id(project.getProjectId())
@@ -124,7 +124,7 @@ public class ProjectServiceImpl implements ProjectService {
 
   @Override
   public void addProject(Long accountId, AddProjectRequest addProjectRequest) {
-    if (accountId != 0L) {
+    if (accountId != 1L) {
       throw new ITSException(ErrorCode.PROJECT_CREATION_FORBIDDEN);
     }
 

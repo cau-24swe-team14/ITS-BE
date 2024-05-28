@@ -304,7 +304,7 @@ public class IssueServiceImpl implements IssueService {
   public DetailsIssueResponse findIssue(Long accountId, Long projectId, Long issueId) {
     ProjectAccount projectAccount = null;
     // 사용자가 Admin이거나 해당 프로젝트에 속해 있는지 검증
-    if (accountId != 0) {
+    if (accountId != 1L) {
        projectAccount = projectAccountRepository.findById(ProjectAccountPK.builder()
           .accountId(accountId)
           .projectId(projectId).build()).orElseThrow(() -> new ITSException(ErrorCode.ISSUE_DETAILS_FORBIDDEN));
