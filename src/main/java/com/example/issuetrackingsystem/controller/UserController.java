@@ -35,6 +35,14 @@ public class UserController {
         }
     }
 
+    @PostMapping("/logout")
+    public ResponseEntity logout(HttpSession session) {
+        session.invalidate();
+        return ResponseEntity
+            .status(HttpStatus.OK)
+            .build();
+    }
+
     @PostMapping("/signup")
     public ResponseEntity signUp(HttpSession session, @RequestBody SignUpRequest signUpRequest) {
         try {
