@@ -81,10 +81,13 @@ public class ProjectServiceImpl implements ProjectService {
 
   @Override
   public DetailsProjectResponse findProject(Long projectId, Long accountId) {
-    ProjectAccount projectAccount = projectAccountRepository.findById(ProjectAccountPK.builder()
-        .accountId(accountId)
-        .projectId(projectId)
-        .build()).orElseThrow(() -> new ITSException(ErrorCode.PROJECT_DETAIL_FORBIDDEN));
+    ProjectAccount projectAccount = null;
+    if (accountId != 1L) {
+      projectAccount = projectAccountRepository.findById(ProjectAccountPK.builder()
+          .accountId(accountId)
+          .projectId(projectId)
+          .build()).orElseThrow(() -> new ITSException(ErrorCode.PROJECT_DETAIL_FORBIDDEN));
+    }
 
     Project project = projectRepository.findById(projectId)
         .orElseThrow(() -> new ITSException(ErrorCode.PROJECT_DETAIL_NOT_FOUND));
@@ -98,7 +101,7 @@ public class ProjectServiceImpl implements ProjectService {
     List<ProjectAccount> projectAccountList = projectAccountRepository.findById_ProjectId(projectId);
 
     DetailsProjectResponse.DetailsProjectResponseBuilder detailsProjectResponseBuilder = DetailsProjectResponse.builder()
-        .accountRole(projectAccount.getRole().ordinal())
+        .accountRole(accountId == 1 ? -1 : projectAccount.getRole().ordinal())
         .id(projectId)
         .title(project.getTitle())
         .description(project.getDescription())
