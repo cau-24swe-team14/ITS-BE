@@ -93,7 +93,7 @@ public class ProjectServiceImpl implements ProjectService {
     Project project = projectRepository.findById(projectId)
         .orElseThrow(() -> new ITSException(ErrorCode.PROJECT_DETAIL_NOT_FOUND));
 
-    List<Issue> issues = issueRepository.findByProjectIdAndAccountId(projectId, accountId);
+    List<Issue> issues = issueRepository.findByProjectId(projectId);
 
     if (issues == null) {
       issues = new ArrayList<>();
