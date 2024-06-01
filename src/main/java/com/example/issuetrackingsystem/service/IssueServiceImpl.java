@@ -136,12 +136,21 @@ public class IssueServiceImpl implements IssueService {
         .reporter(issue.getReporter())
         .reportedDate(issue.getReportedDate())
         .dueDate(issue.getDueDate())
-        .manager(issue.getManager())
-        .assignee(issue.getAssignee())
-        .fixer(issue.getFixer())
         .priority(issue.getPriority())
-        .status(issue.getStatus())
-        .closedDate(issue.getClosedDate());
+        .status(issue.getStatus());
+
+    if (issue.getManager() != null) {
+      modifiedIssue.manager(issue.getManager());
+    }
+    if (issue.getAssignee() != null) {
+      modifiedIssue.assignee(issue.getAssignee());
+    }
+    if (issue.getFixer() != null) {
+      modifiedIssue.fixer(issue.getFixer());
+    }
+    if (issue.getClosedDate() != null) {
+      modifiedIssue.closedDate(issue.getClosedDate());
+    }
 
     List<String> commentContentList = new ArrayList<>();
 
