@@ -233,7 +233,7 @@ public class ProjectServiceImpl implements ProjectService {
         }
 
         for (Object[] object : dailyNewIssueCountObjectList) {
-          String key = String.format("%04d-%02d-%01d", Integer.parseInt(String.valueOf(object[0])), Integer.parseInt(String.valueOf(object[1])), Integer.parseInt(String.valueOf(object[2])));
+          String key = String.format("%04d-%02d-%02d", Integer.parseInt(String.valueOf(object[0])), Integer.parseInt(String.valueOf(object[1])), Integer.parseInt(String.valueOf(object[2])));
           if (dailyNewDataMap.containsKey(key)) {
             dailyNewDataMap.put(key, Integer.parseInt(String.valueOf(object[3])));
           }
@@ -379,20 +379,20 @@ public class ProjectServiceImpl implements ProjectService {
       case "best-member":
         Object[] bestPLObject = issueRepository.findBestManagerDuringLastWeek(currentDate.minusDays(6).atStartOfDay());
         BestMember bestPL = BestMember.builder()
-            .username(String.valueOf(bestPLObject[0]))
-            .count(Integer.parseInt(String.valueOf(bestPLObject[1])))
+            .username((String) ((Object[]) bestPLObject[0])[0])
+            .count(((Long) ((Object[]) bestPLObject[0])[1]).intValue())
             .build();
 
         Object[] bestDevObject = issueRepository.findBestAssigneeDuringLastWeek(currentDate.minusDays(6).atStartOfDay());
         BestMember bestDev = BestMember.builder()
-            .username(String.valueOf(bestDevObject[0]))
-            .count(Integer.parseInt(String.valueOf(bestDevObject[1])))
+            .username((String) ((Object[]) bestDevObject[0])[0])
+            .count(((Long) ((Object[]) bestDevObject[0])[1]).intValue())
             .build();
 
         Object[] bestTesterObject = issueRepository.findBestReporterDuringLastWeek(currentDate.minusDays(6).atStartOfDay());
         BestMember bestTester = BestMember.builder()
-            .username(String.valueOf(bestTesterObject[0]))
-            .count(Integer.parseInt(String.valueOf(bestTesterObject[1])))
+            .username((String) ((Object[]) bestTesterObject[0])[0])
+            .count(((Long) ((Object[]) bestTesterObject[0])[1]).intValue())
             .build();
 
         projectTrendResponse = ProjectTrendResponse.builder()
