@@ -21,7 +21,7 @@ public enum ErrorCode {
   ISSUE_ASSIGNEE_SUGGESTION_BAD_REQUEST(HttpStatus.BAD_REQUEST, "이슈 assignee 추천 요청이 올바르지 않습니다."),
   LOGIN_FAILED(HttpStatus.UNAUTHORIZED, "로그인에 실패했습니다."),
   USERNAME_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 존재하는 아이디입니다."),
-  USERNAME_NOT_FOUND(HttpStatus.NOT_FOUND, "아이디가 존재하지 않습니다."),
+  USERNAME_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 아이디와 일치하는 계정이 없습니다."),
   INVALID_PASSWORD(HttpStatus.UNAUTHORIZED, "비밀번호가 일치하지 않습니다."),
   PROJECT_DETAIL_NOT_FOUND(HttpStatus.NOT_FOUND, "요청한 프로젝트를 찾을 수 없습니다."),
   PROJECT_DETAIL_FORBIDDEN(HttpStatus.FORBIDDEN, "프로젝트 상세를 조회할 권한이 없습니다."),

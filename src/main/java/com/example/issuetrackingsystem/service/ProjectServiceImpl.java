@@ -11,6 +11,7 @@ import com.example.issuetrackingsystem.dto.AddProjectRequest.ProjectMemberData;
 import com.example.issuetrackingsystem.dto.DetailsProjectResponse;
 import com.example.issuetrackingsystem.dto.DetailsProjectResponse.IssueData;
 import com.example.issuetrackingsystem.dto.DetailsProjectResponse.MemberData;
+import com.example.issuetrackingsystem.dto.ModifyIssueRequest;
 import com.example.issuetrackingsystem.dto.ModifyProjectRequest;
 import com.example.issuetrackingsystem.dto.ProjectResponse;
 import com.example.issuetrackingsystem.dto.ProjectResponse.ProjectData;
@@ -164,8 +165,26 @@ public class ProjectServiceImpl implements ProjectService {
     if (accountId != 1L) {
       throw new ITSException(ErrorCode.PROJECT_UPDATE_FORBIDDEN);
     }
+
     Project project = projectRepository.findById(projectId)
         .orElseThrow(() -> new ITSException(ErrorCode.PROJECT_UPDATE_NOT_FOUND));
+
+    List<ModifyProjectRequest.ProjectMemberData> projectMemberDataList = modifyProjectRequest.getMember();
+
+    if (projectMemberDataList != null) {
+      for (ModifyProjectRequest.ProjectMemberData projectMember : projectMemberDataList) {
+        projectAccountRepository.save(ProjectAccount.builder()
+            .id(ProjectAccountPK.builder()
+                .projectId(projectId)
+                .accountId(accountId)
+                .build())
+            .project(project)
+            .account(accountRepository.findByUsername(projectMember.getUsername())
+                .orElseThrow(() -> new ITSException(ErrorCode.USERNAME_NOT_FOUND)))
+            .role(ProjectAccountRole.values()[projectMember.getRole()])
+            .build());
+      }
+    }
 
     Project.ProjectBuilder projectBuilder = Project.builder()
         .projectId(projectId)
