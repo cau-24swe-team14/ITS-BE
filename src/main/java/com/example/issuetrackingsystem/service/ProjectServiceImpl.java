@@ -173,14 +173,15 @@ public class ProjectServiceImpl implements ProjectService {
 
     if (projectMemberDataList != null) {
       for (ModifyProjectRequest.ProjectMemberData projectMember : projectMemberDataList) {
+        Account account = accountRepository.findByUsername(projectMember.getUsername())
+            .orElseThrow(() -> new ITSException(ErrorCode.USERNAME_NOT_FOUND));
         projectAccountRepository.save(ProjectAccount.builder()
             .id(ProjectAccountPK.builder()
                 .projectId(projectId)
-                .accountId(accountId)
+                .accountId(account.getAccountId())
                 .build())
             .project(project)
-            .account(accountRepository.findByUsername(projectMember.getUsername())
-                .orElseThrow(() -> new ITSException(ErrorCode.USERNAME_NOT_FOUND)))
+            .account(account)
             .role(ProjectAccountRole.values()[projectMember.getRole()])
             .build());
       }
