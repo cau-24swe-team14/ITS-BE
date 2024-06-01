@@ -53,7 +53,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void findUser(String username) {
-        if (accountRepository.findByUsername(username).isPresent())
+        if (!accountRepository.findByUsername(username).isPresent())
             throw new ITSException(ErrorCode.USERNAME_NOT_FOUND);
     }
 }
