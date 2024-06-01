@@ -85,7 +85,7 @@ public interface IssueRepository extends JpaRepository<Issue, IssuePK> {
   Object[] findAssigneeSuggestion();
 
   @Query("SELECT i FROM Issue i WHERE i.id.projectId = :projectId")
-  List<Issue> findByProjectId(Long projectId);
+  List<Issue> findByProjectId(@Param("projectId") Long projectId);
 
   List<Issue> findById_ProjectIdAndTitle(Long projectId, String title);
 
