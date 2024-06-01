@@ -51,4 +51,9 @@ public class UserServiceImpl implements UserService {
         return newAccount.getAccountId();
     }
 
+    @Override
+    public void findUser(String username) {
+        if (accountRepository.findByUsername(username).isPresent())
+            throw new ITSException(ErrorCode.USERNAME_NOT_FOUND);
+    }
 }
