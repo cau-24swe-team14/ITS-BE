@@ -209,11 +209,13 @@ public class ProjectServiceImpl implements ProjectService {
 
   @Override
   public ProjectTrendResponse findProjectTrend(Long accountId, Long projectId, String category) {
-    // 사용자가 해당 프로젝트에 속해 있는지 검증
-    ProjectAccount projectAccount = projectAccountRepository.findById(ProjectAccountPK.builder()
-            .accountId(accountId)
-            .projectId(projectId).build())
-        .orElseThrow(() -> new ITSException(ErrorCode.PROJECT_TREND_FORBIDDEN));
+    // 사용자가 Admin이거나 해당 프로젝트에 속해 있는지 검증
+    if (accountId != 1L) {
+      projectAccountRepository.findById(ProjectAccountPK.builder()
+              .accountId(accountId)
+              .projectId(projectId).build())
+          .orElseThrow(() -> new ITSException(ErrorCode.PROJECT_TREND_FORBIDDEN));
+    }
 
     ProjectTrendResponse projectTrendResponse = null;
 
