@@ -48,27 +48,27 @@ public interface IssueRepository extends JpaRepository<Issue, IssuePK> {
 
   @Query("SELECT i.manager.username, COUNT(*) AS count " +
       "FROM Issue i " +
-      "WHERE i.reportedDate >= :startDate " +
+      "WHERE i.reportedDate >= :startDate AND i.project.projectId = :projectId " +
       "GROUP BY i.manager.username " +
       "ORDER BY count DESC " +
       "LIMIT 1")
-  Object[] findBestManagerDuringLastWeek(@Param("startDate") LocalDateTime startDate);
+  Object[] findBestManagerDuringLastWeek(@Param("projectId") Long projectId, @Param("startDate") LocalDateTime startDate);
 
   @Query("SELECT i.assignee.username, COUNT(*) AS count " +
       "FROM Issue i " +
-      "WHERE i.reportedDate >= :startDate " +
+      "WHERE i.reportedDate >= :startDate AND i.project.projectId = :projectId " +
       "GROUP BY i.assignee.username " +
       "ORDER BY count DESC " +
       "LIMIT 1")
-  Object[] findBestAssigneeDuringLastWeek(@Param("startDate") LocalDateTime startDate);
+  Object[] findBestAssigneeDuringLastWeek(@Param("projectId") Long projectId, @Param("startDate") LocalDateTime startDate);
 
   @Query("SELECT i.reporter.username, COUNT(*) AS count " +
       "FROM Issue i " +
-      "WHERE i.reportedDate >= :startDate " +
+      "WHERE i.reportedDate >= :startDate AND i.project.projectId = :projectId " +
       "GROUP BY i.reporter.username " +
       "ORDER BY count DESC " +
       "LIMIT 1")
-  Object[] findBestReporterDuringLastWeek(@Param("startDate") LocalDateTime startDate);
+  Object[] findBestReporterDuringLastWeek(@Param("projectId") Long projectId, @Param("startDate") LocalDateTime startDate);
 
   @Query("SELECT i.assignee.username, COUNT(*) AS assigneeCount, SUM(CASE WHEN i.status <> 4 THEN 1 ELSE 0 END) AS openIssueCount " +
       "FROM Issue i " +

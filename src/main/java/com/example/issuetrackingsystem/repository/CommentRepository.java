@@ -20,9 +20,9 @@ public interface CommentRepository extends JpaRepository<Comment, CommentPK> {
 
   @Query("SELECT c.id.issueId.issueId, c.issue.title, COUNT(*) AS count "
       + "FROM Comment c "
-      + "WHERE c.date >= :startDate "
+      + "WHERE c.date >= :startDate AND c.issue.project.projectId = :projectId "
       + "GROUP BY c.id.issueId.issueId, c.id.issueId.projectId "
       + "ORDER BY count DESC "
       + "LIMIT 3")
-  List<Object[]> findTop3IssuesWithMostComments(@Param("startDate") LocalDateTime startDate);
+  List<Object[]> findTop3IssuesWithMostComments(@Param("projectId") Long projectId, @Param("startDate") LocalDateTime startDate);
 }

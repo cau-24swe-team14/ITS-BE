@@ -346,7 +346,7 @@ public class ProjectServiceImpl implements ProjectService {
         break;
 
       case "best-issue":
-        List<Object[]> top3IssueObjectDaily = commentRepository.findTop3IssuesWithMostComments(currentDate.atStartOfDay());
+        List<Object[]> top3IssueObjectDaily = commentRepository.findTop3IssuesWithMostComments(projectId, currentDate.atStartOfDay());
         List<BestIssue> top3IssueDaily = new ArrayList<>();
 
         for (Object[] object : top3IssueObjectDaily) {
@@ -357,7 +357,7 @@ public class ProjectServiceImpl implements ProjectService {
               .build());
         }
 
-        List<Object[]> top3IssueObjectMonthly = commentRepository.findTop3IssuesWithMostComments(currentDate.withDayOfMonth(1).atStartOfDay());
+        List<Object[]> top3IssueObjectMonthly = commentRepository.findTop3IssuesWithMostComments(projectId, currentDate.withDayOfMonth(1).atStartOfDay());
         List<BestIssue> top3IssueMonthly = new ArrayList<>();
 
         for (Object[] object : top3IssueObjectMonthly) {
@@ -379,19 +379,19 @@ public class ProjectServiceImpl implements ProjectService {
         break;
 
       case "best-member":
-        Object[] bestPLObject = issueRepository.findBestManagerDuringLastWeek(currentDate.minusDays(6).atStartOfDay());
+        Object[] bestPLObject = issueRepository.findBestManagerDuringLastWeek(projectId, currentDate.minusDays(6).atStartOfDay());
         BestMember bestPL = BestMember.builder()
             .username((String) ((Object[]) bestPLObject[0])[0])
             .count(((Long) ((Object[]) bestPLObject[0])[1]).intValue())
             .build();
 
-        Object[] bestDevObject = issueRepository.findBestAssigneeDuringLastWeek(currentDate.minusDays(6).atStartOfDay());
+        Object[] bestDevObject = issueRepository.findBestAssigneeDuringLastWeek(projectId, currentDate.minusDays(6).atStartOfDay());
         BestMember bestDev = BestMember.builder()
             .username((String) ((Object[]) bestDevObject[0])[0])
             .count(((Long) ((Object[]) bestDevObject[0])[1]).intValue())
             .build();
 
-        Object[] bestTesterObject = issueRepository.findBestReporterDuringLastWeek(currentDate.minusDays(6).atStartOfDay());
+        Object[] bestTesterObject = issueRepository.findBestReporterDuringLastWeek(projectId, currentDate.minusDays(6).atStartOfDay());
         BestMember bestTester = BestMember.builder()
             .username((String) ((Object[]) bestTesterObject[0])[0])
             .count(((Long) ((Object[]) bestTesterObject[0])[1]).intValue())
