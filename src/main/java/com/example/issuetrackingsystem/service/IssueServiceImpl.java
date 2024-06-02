@@ -162,9 +162,7 @@ public class IssueServiceImpl implements IssueService {
     }
 
     List<String> commentContentList = new ArrayList<>();
-
     if (modifyIssueRequest.getAssignee() != null) { // assignee 변경
-
       // 사용자가 해당 프로젝트의 PL인지, 이슈가 NEW 상태인지 검증
       if (projectAccount.getRole() != ProjectAccountRole.PL) {
         throw new ITSException(ErrorCode.ISSUE_UPDATE_FORBIDDEN);
@@ -172,6 +170,18 @@ public class IssueServiceImpl implements IssueService {
       if (issue.getStatus() != IssueStatus.NEW) {
         throw new ITSException(ErrorCode.ISSUE_UPDATE_BAD_REQUEST);
       }
+      // assignee로 입력된 사용자가 Dev인지 검증
+      if (projectAccountRepository.findById(ProjectAccountPK.builder()
+              .projectId(projectId)
+              .accountId(accountRepository.findByUsername(modifyIssueRequest.getAssignee())
+                  .orElseThrow(() -> new ITSException(ErrorCode.ISSUE_UPDATE_BAD_REQUEST))
+                  .getAccountId())
+          .build())
+          .orElseThrow(() -> new ITSException(ErrorCode.ISSUE_UPDATE_BAD_REQUEST))
+          .getRole() != ProjectAccountRole.dev) {
+        throw new ITSException(ErrorCode.ISSUE_UPDATE_BAD_REQUEST);
+      }
+
       modifiedIssue.assignee(accountRepository.findByUsername(modifyIssueRequest.getAssignee())
               .orElseThrow(() -> new ITSException(ErrorCode.ISSUE_UPDATE_BAD_REQUEST)))
           .status(IssueStatus.ASSIGNED)
