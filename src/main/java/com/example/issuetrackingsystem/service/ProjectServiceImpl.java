@@ -296,7 +296,7 @@ public class ProjectServiceImpl implements ProjectService {
         }
 
         for (Object[] object : dailyClosedIssueCountObjectList) {
-          String key = String.format("%04d-%02d-%01d", Integer.parseInt(String.valueOf(object[0])), Integer.parseInt(String.valueOf(object[1])), Integer.parseInt(String.valueOf(object[2])));
+          String key = String.format("%04d-%02d-%02d", Integer.parseInt(String.valueOf(object[0])), Integer.parseInt(String.valueOf(object[1])), Integer.parseInt(String.valueOf(object[2])));
           if (dailyClosedDataMap.containsKey(key)) {
             dailyClosedDataMap.put(key, Integer.parseInt(String.valueOf(object[3])));
           }
