@@ -394,7 +394,7 @@ public class IssueServiceImpl implements IssueService {
         .dueDate(issue.getDueDate().format(DateTimeFormatter.ISO_DATE))
         .closedDate(issue.getClosedDate() != null ? issue.getClosedDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) : null)
         .comment(addCommentResponseList)
-        .accountRole(projectAccount.getRole().ordinal())
+        .accountRole(accountId == 1 ? -1 : projectAccount.getRole().ordinal())
         .build();
 
     return detailsIssueResponse;
