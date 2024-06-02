@@ -232,9 +232,8 @@ public class IssueServiceImpl implements IssueService {
           modifiedIssue.status(newStatus)
               .closedDate(LocalDateTime.now());
 
-          if (issueRepository.findByStatusNotAndIdProjectId(IssueStatus.CLOSED, projectId)
-              .orElse(Collections.emptyList())
-              .isEmpty()) {
+          if (issueRepository.findByStatusNotAndIdProjectId(IssueStatus.CLOSED, projectId) == null
+          ) {
             projectRepository.save(Project.builder()
                 .projectId(project.getProjectId())
                 .title(project.getTitle())

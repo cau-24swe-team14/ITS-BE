@@ -107,5 +107,5 @@ public interface IssueRepository extends JpaRepository<Issue, IssuePK> {
 
   List<Issue> findById_ProjectIdAndStatus(Long projectId, IssueStatus status);
 
-  Optional<List<Issue>> findByStatusNotAndIdProjectId(IssueStatus issueStatus, Long projectId);
+  List<Issue> findByStatusNotAndIdProjectId(IssueStatus issueStatus, Long projectId);
 }
