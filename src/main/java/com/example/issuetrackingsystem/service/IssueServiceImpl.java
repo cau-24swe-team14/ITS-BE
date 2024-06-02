@@ -475,7 +475,7 @@ public class IssueServiceImpl implements IssueService {
     SuggestIssueAssigneeResponse suggestIssueAssigneeResponse;
 
     if (issueKeyword == null) {
-      Object[] assignee = issueRepository.findAssigneeSuggestion();
+      Object[] assignee = issueRepository.findAssigneeSuggestion(projectId);
       if (assignee.length == 0) {
         List<ProjectAccount> devs = projectAccountRepository.findByProjectProjectIdAndRole(projectId, ProjectAccountRole.dev);
         if (devs.isEmpty()) {
@@ -494,7 +494,7 @@ public class IssueServiceImpl implements IssueService {
             .build();
       }
     } else {
-      Object[] assignee = issueRepository.findAssigneeSuggestionByKeyword(issueKeyword);
+      Object[] assignee = issueRepository.findAssigneeSuggestionByKeyword(projectId, issueKeyword);
       if (assignee.length == 0) {
         List<ProjectAccount> devs = projectAccountRepository.findByProjectProjectIdAndRole(projectId, ProjectAccountRole.dev);
         if (devs.isEmpty()) {

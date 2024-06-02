@@ -72,18 +72,19 @@ public interface IssueRepository extends JpaRepository<Issue, IssuePK> {
 
   @Query("SELECT i.assignee.username, COUNT(*) AS assigneeCount, SUM(CASE WHEN i.status <> 4 THEN 1 ELSE 0 END) AS openIssueCount " +
       "FROM Issue i " +
-      "WHERE i.keyword = :keyword " +
+      "WHERE i.keyword = :keyword AND i.project.projectId = :projectId " +
       "GROUP BY i.assignee.username " +
       "ORDER BY assigneeCount DESC, openIssueCount ASC "
       + "LIMIT 1")
-  Object[] findAssigneeSuggestionByKeyword(@Param("keyword") IssueKeyword issueKeyword);
+  Object[] findAssigneeSuggestionByKeyword(@Param("projectId") Long projectId, @Param("keyword") IssueKeyword issueKeyword);
 
   @Query("SELECT i.assignee.username, COUNT(*) AS assigneeCount, SUM(CASE WHEN i.status <> 4 THEN 1 ELSE 0 END) AS openIssueCount " +
       "FROM Issue i " +
+      "WHERE i.project.projectId = :projectId " +
       "GROUP BY i.assignee.username " +
       "ORDER BY assigneeCount DESC, openIssueCount ASC "
       + "LIMIT 1")
-  Object[] findAssigneeSuggestion();
+  Object[] findAssigneeSuggestion(@Param("projectId") Long projectId);
 
   @Query("SELECT i FROM Issue i WHERE i.id.projectId = :projectId")
   List<Issue> findByProjectId(@Param("projectId") Long projectId);
