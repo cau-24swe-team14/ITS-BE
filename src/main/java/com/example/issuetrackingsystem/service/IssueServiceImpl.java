@@ -136,6 +136,8 @@ public class IssueServiceImpl implements IssueService {
     Issue issue = issueRepository.findById(issuePK)
         .orElseThrow(() -> new ITSException(ErrorCode.ISSUE_NOT_FOUND));
 
+    Project project = projectRepository.findById(projectId).orElseThrow(() -> new ITSException(ErrorCode.ISSUE_UPDATE_BAD_REQUEST));
+
     Issue.IssueBuilder modifiedIssue = Issue.builder()
         .id(issue.getId())
         .project(issue.getProject())
@@ -170,6 +172,7 @@ public class IssueServiceImpl implements IssueService {
       if (issue.getStatus() != IssueStatus.NEW) {
         throw new ITSException(ErrorCode.ISSUE_UPDATE_BAD_REQUEST);
       }
+
       // assignee로 입력된 사용자가 Dev인지 검증
       if (projectAccountRepository.findById(ProjectAccountPK.builder()
               .projectId(projectId)
@@ -194,7 +197,6 @@ public class IssueServiceImpl implements IssueService {
     } else if (modifyIssueRequest.getStatus() != null) { // status 변경
 
       IssueStatus newStatus = IssueStatus.values()[modifyIssueRequest.getStatus()];
-      Project project = projectRepository.findById(projectId).orElseThrow(() -> new ITSException(ErrorCode.ISSUE_UPDATE_BAD_REQUEST));
 
       switch (newStatus) {
         case FIXED:
@@ -231,17 +233,6 @@ public class IssueServiceImpl implements IssueService {
           }
           modifiedIssue.status(newStatus)
               .closedDate(LocalDateTime.now());
-
-          if (issueRepository.findByStatusNotAndIdProjectId(IssueStatus.CLOSED, projectId) == null
-          ) {
-            projectRepository.save(Project.builder()
-                .projectId(project.getProjectId())
-                .title(project.getTitle())
-                .description(project.getDescription())
-                .status(ProjectStatus.DONE)
-                .date(project.getDate())
-                .build());
-          }
           break;
 
         case REOPENED:
@@ -344,6 +335,16 @@ public class IssueServiceImpl implements IssueService {
     }
 
     issueRepository.save(modifiedIssue.build());
+
+    if (issueRepository.findByStatusNotAndIdProjectId(IssueStatus.CLOSED, projectId).isEmpty()) {
+      projectRepository.save(Project.builder()
+          .projectId(project.getProjectId())
+          .title(project.getTitle())
+          .description(project.getDescription())
+          .status(ProjectStatus.DONE)
+          .date(project.getDate())
+          .build());
+    }
 
     for (String content : commentContentList) {
       addComment(accountId, projectId, issueId, new AddCommentRequest(content));
