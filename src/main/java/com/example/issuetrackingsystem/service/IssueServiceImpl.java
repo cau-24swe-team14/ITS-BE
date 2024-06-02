@@ -232,7 +232,7 @@ public class IssueServiceImpl implements IssueService {
           modifiedIssue.status(newStatus)
               .closedDate(LocalDateTime.now());
 
-          if (issueRepository.findById_ProjectIdAndStatusFalse(projectId, IssueStatus.CLOSED).isEmpty()) {
+          if (issueRepository.findById_ProjectIdAndStatusNot(projectId, IssueStatus.CLOSED).isEmpty()) {
             projectRepository.save(Project.builder()
                 .projectId(project.getProjectId())
                 .title(project.getTitle())
