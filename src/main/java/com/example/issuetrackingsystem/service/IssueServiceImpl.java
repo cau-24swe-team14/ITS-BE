@@ -9,6 +9,7 @@ import com.example.issuetrackingsystem.domain.enums.IssueKeyword;
 import com.example.issuetrackingsystem.domain.enums.IssuePriority;
 import com.example.issuetrackingsystem.domain.enums.IssueStatus;
 import com.example.issuetrackingsystem.domain.enums.ProjectAccountRole;
+import com.example.issuetrackingsystem.domain.enums.ProjectStatus;
 import com.example.issuetrackingsystem.domain.key.CommentPK;
 import com.example.issuetrackingsystem.domain.key.IssuePK;
 import com.example.issuetrackingsystem.domain.key.ProjectAccountPK;
@@ -103,6 +104,14 @@ public class IssueServiceImpl implements IssueService {
 
     issueRepository.save(newIssue.build());
 
+    projectRepository.save(Project.builder()
+            .projectId(project.getProjectId())
+            .title(project.getTitle())
+            .description(project.getDescription())
+            .status(ProjectStatus.IN_PROGRESS)
+            .date(project.getDate())
+        .build());
+
     return "/projects/" + projectId + "/issues/" + newIssueId;
   }
 
@@ -175,6 +184,7 @@ public class IssueServiceImpl implements IssueService {
     } else if (modifyIssueRequest.getStatus() != null) { // status 변경
 
       IssueStatus newStatus = IssueStatus.values()[modifyIssueRequest.getStatus()];
+      Project project = projectRepository.findById(projectId).orElseThrow(() -> new ITSException(ErrorCode.ISSUE_UPDATE_BAD_REQUEST));
 
       switch (newStatus) {
         case FIXED:
@@ -211,6 +221,16 @@ public class IssueServiceImpl implements IssueService {
           }
           modifiedIssue.status(newStatus)
               .closedDate(LocalDateTime.now());
+
+          if (issueRepository.findById_ProjectIdAndStatusFalse(projectId, IssueStatus.CLOSED).isEmpty()) {
+            projectRepository.save(Project.builder()
+                .projectId(project.getProjectId())
+                .title(project.getTitle())
+                .description(project.getDescription())
+                .status(ProjectStatus.DONE)
+                .date(project.getDate())
+                .build());
+          }
           break;
 
         case REOPENED:
@@ -223,6 +243,14 @@ public class IssueServiceImpl implements IssueService {
           }
           modifiedIssue.status(newStatus)
               .closedDate(null);
+
+          projectRepository.save(Project.builder()
+              .projectId(project.getProjectId())
+              .title(project.getTitle())
+              .description(project.getDescription())
+              .status(ProjectStatus.IN_PROGRESS)
+              .date(project.getDate())
+              .build());
           break;
 
         default:
@@ -245,7 +273,6 @@ public class IssueServiceImpl implements IssueService {
             + " changed the title to "
             + modifyIssueRequest.getTitle()
             + ".");
-
       }
 
       if (modifyIssueRequest.getDescription() != null) { // description 변경

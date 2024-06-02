@@ -7,6 +7,7 @@ import com.example.issuetrackingsystem.domain.enums.IssueStatus;
 import com.example.issuetrackingsystem.domain.key.IssuePK;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -104,4 +105,6 @@ public interface IssueRepository extends JpaRepository<Issue, IssuePK> {
   List<Issue> findById_ProjectIdAndPriority(Long projectId, IssuePriority priority);
 
   List<Issue> findById_ProjectIdAndStatus(Long projectId, IssueStatus status);
+
+  Optional<Object> findById_ProjectIdAndStatusFalse(Long projectId, IssueStatus issueStatus);
 }
