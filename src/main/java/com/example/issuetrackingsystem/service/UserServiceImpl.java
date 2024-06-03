@@ -36,7 +36,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Long signUp(SignUpRequest signUpRequest) throws ITSException {
+    public Long signup(SignUpRequest signUpRequest) throws ITSException {
         if (accountRepository.findByUsername(signUpRequest.getUsername()).isPresent()) {
             throw new ITSException(ErrorCode.USERNAME_ALREADY_EXISTS);
         }

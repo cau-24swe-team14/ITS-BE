@@ -50,7 +50,7 @@ public class UserController {
     @PostMapping("/signup")
     public ResponseEntity signUp(HttpSession session, @RequestBody SignUpRequest signUpRequest) {
         try {
-            Long accountId = userService.signUp(signUpRequest);
+            Long accountId = userService.signup(signUpRequest);
             session.setAttribute("id", accountId);
             return ResponseEntity.status(HttpStatus.CREATED).build();
         } catch (ITSException e) {

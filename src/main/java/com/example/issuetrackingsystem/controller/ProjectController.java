@@ -33,7 +33,7 @@ public class ProjectController {
   }
 
   @GetMapping
-  public ResponseEntity getProjectList(HttpSession session) {
+  public ResponseEntity projectList(HttpSession session) {
     Long accountId = (Long) session.getAttribute("id");
 
     if (accountId == null) {
@@ -43,7 +43,7 @@ public class ProjectController {
     ProjectResponse projects;
 
     try {
-      projects = projectService.getProjectList(accountId);
+      projects = projectService.projectList(accountId);
     } catch (ITSException e) {
       return ResponseEntity
           .status(e.getErrorCode().getHttpStatus())
@@ -136,7 +136,7 @@ public class ProjectController {
     ProjectTrendResponse projectTrendResponse;
 
     try {
-      projectTrendResponse = projectService.findProjectTrend(accountId, projectId, category);
+      projectTrendResponse = projectService.trendProject(accountId, projectId, category);
     } catch (ITSException e) {
       return ResponseEntity
           .status(e.getErrorCode().getHttpStatus())

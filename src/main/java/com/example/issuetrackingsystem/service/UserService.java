@@ -5,6 +5,6 @@ import com.example.issuetrackingsystem.dto.SignUpRequest;
 
 public interface UserService {
   Long login(LoginRequest loginRequest);
-  Long signUp(SignUpRequest signUpRequest);
+  Long signup(SignUpRequest signUpRequest);
   void findUser(String username);
 }

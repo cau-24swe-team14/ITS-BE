@@ -56,7 +56,7 @@ public class ProjectServiceImpl implements ProjectService {
   }
 
   @Override
-  public ProjectResponse getProjectList(Long accountId) {
+  public ProjectResponse projectList(Long accountId) {
     List<Project> projects;
     if (accountId == 1) {
       projects = projectRepository.findAll();
@@ -208,7 +208,7 @@ public class ProjectServiceImpl implements ProjectService {
   }
 
   @Override
-  public ProjectTrendResponse findProjectTrend(Long accountId, Long projectId, String category) {
+  public ProjectTrendResponse trendProject(Long accountId, Long projectId, String category) {
     // 사용자가 Admin이거나 해당 프로젝트에 속해 있는지 검증
     if (accountId != 1L) {
       projectAccountRepository.findById(ProjectAccountPK.builder()
