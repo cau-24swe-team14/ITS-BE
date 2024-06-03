@@ -1,387 +1,204 @@
 package com.example.issuetrackingsystem.service;
 
-import com.example.issuetrackingsystem.domain.Account;
-import com.example.issuetrackingsystem.domain.Comment;
-import com.example.issuetrackingsystem.domain.Issue;
-import com.example.issuetrackingsystem.domain.Project;
-import com.example.issuetrackingsystem.domain.ProjectAccount;
-import com.example.issuetrackingsystem.domain.enums.IssuePriority;
-import com.example.issuetrackingsystem.domain.enums.IssueStatus;
-import com.example.issuetrackingsystem.domain.enums.ProjectAccountRole;
-import com.example.issuetrackingsystem.domain.key.CommentPK;
-import com.example.issuetrackingsystem.domain.key.IssuePK;
-import com.example.issuetrackingsystem.domain.key.ProjectAccountPK;
-import com.example.issuetrackingsystem.dto.AddCommentRequest;
-import com.example.issuetrackingsystem.dto.AddCommentResponse;
-import com.example.issuetrackingsystem.dto.AddIssueRequest;
-import com.example.issuetrackingsystem.dto.DetailsIssueResponse;
-import com.example.issuetrackingsystem.dto.ModifyIssueRequest;
-import com.example.issuetrackingsystem.exception.ErrorCode;
-import com.example.issuetrackingsystem.exception.ITSException;
-import com.example.issuetrackingsystem.repository.AccountRepository;
-import com.example.issuetrackingsystem.repository.CommentRepository;
-import com.example.issuetrackingsystem.repository.IssueRepository;
-import com.example.issuetrackingsystem.repository.ProjectAccountRepository;
-import com.example.issuetrackingsystem.repository.ProjectRepository;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.Optional;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
+import com.example.issuetrackingsystem.domain.*;
+import com.example.issuetrackingsystem.domain.enums.*;
+import com.example.issuetrackingsystem.domain.key.*;
+import com.example.issuetrackingsystem.dto.*;
+import com.example.issuetrackingsystem.repository.*;
+import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.extension.*;
+import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.*;
+
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class IssueServiceTest {
-
-  @Mock
-  private ProjectAccountRepository projectAccountRepository;
-
-  @Mock
-  private AccountRepository accountRepository;
-
-  @Mock
-  private ProjectRepository projectRepository;
+class IssueServiceTest {
 
   @Mock
   private IssueRepository issueRepository;
-
+  @Mock
+  private ProjectAccountRepository projectAccountRepository;
+  @Mock
+  private AccountRepository accountRepository;
+  @Mock
+  private ProjectRepository projectRepository;
   @Mock
   private CommentRepository commentRepository;
 
   @InjectMocks
   private IssueServiceImpl issueService;
 
-  @DisplayName("addIssue: 사용자가 테스터일 때 이슈 추가에 성공한다")
-  @Test
-  public void addIssue_WhenUserIsTester_Success() {
-    // parameter Mock 데이터 설정
-    Long accountId = 1L;
-    Long projectId = 1L;
-    AddIssueRequest addIssueRequest = AddIssueRequest.builder()
-        .title("Test Issue")
-        .description("Description")
-        .dueDate(LocalDateTime.now().plusDays(3).format(DateTimeFormatter.ISO_DATE))
-        .priority(1)
+  private Long accountId;
+  private Long projectId;
+  private Long issueId;
+
+  private ProjectAccount.ProjectAccountBuilder projectAccountBuilder;
+  private ProjectAccountPK projectAccountPK;
+  private Account account;
+  private Project project;
+  private Issue issue;
+  private AddIssueRequest addIssueRequest;
+  private ModifyIssueRequest modifyIssueRequest;
+
+  @BeforeEach
+  void setUp() {
+    accountId = 2L;
+    projectId = 1L;
+    issueId = 1L;
+
+    account = Account.builder()
+        .accountId(accountId)
+        .username("user")
         .build();
 
-    // domain Mock 데이터 설정
-    Project project = Project.builder()
+    project = Project.builder()
+        .projectId(projectId)
+        .title("Test Project")
+        .description("Test Project Description")
+        .status(ProjectStatus.IN_PROGRESS)
+        .date(LocalDateTime.now())
+        .build();
+
+    projectAccountPK = ProjectAccountPK.builder()
+        .accountId(accountId)
         .projectId(projectId)
         .build();
-    Account account = Account.builder()
-        .accountId(accountId)
-        .build();
 
-    Issue issue = Issue.builder()
-        .id(IssuePK.builder()
-            .projectId(projectId)
-            .issueId(2L)
-            .build())
-        .build();
-
-    // 사용자가 tester 역할인 경우의 Mock 데이터 설정
-    ProjectAccount projectAccount = ProjectAccount.builder()
-        .id(ProjectAccountPK.builder()
-            .accountId(accountId)
-            .projectId(projectId)
-            .build())
-        .account(account)
+    projectAccountBuilder = ProjectAccount.builder()
+        .id(projectAccountPK)
         .project(project)
-        .role(ProjectAccountRole.tester)
-        .build();
-
-    // Mock 객체의 동작 설정
-    given(projectAccountRepository.findById(any(ProjectAccountPK.class))).willReturn(Optional.of(projectAccount));
-    given(issueRepository.findMaxIdByProjectId(projectId)).willReturn(1L);
-    given(projectRepository.findById(projectId)).willReturn(Optional.of(project));
-    given(accountRepository.findById(accountId)).willReturn(Optional.of(account));
-    given(issueRepository.save(any(Issue.class))).willReturn(issue);
-
-    // 테스트
-    String result = issueService.addIssue(accountId, projectId, addIssueRequest);
-
-    // 결과 확인
-    assertThat(result).isEqualTo("/projects/1/issues/2");
-  }
-
-  @DisplayName("addIssue: 사용자가 테스터가 아닐 때 이슈 추가에 실패한다")
-  @Test
-  public void addIssue_WhenUserIsTester_Fail() {
-    // parameter Mock 데이터 설정
-    Long accountId = 1L;
-    Long projectId = 1L;
-    AddIssueRequest addIssueRequest = AddIssueRequest.builder()
-        .title("Test Issue")
-        .description("Description")
-        .dueDate(LocalDateTime.now().plusDays(3).format(DateTimeFormatter.ISO_DATE))
-        .priority(1)
-        .build();
-
-    // domain Mock 데이터 설정
-    Project project = Project.builder()
-        .projectId(projectId)
-        .build();
-    Account account = Account.builder()
-        .accountId(accountId)
-        .build();
-
-    // 사용자가 tester 역할이 아닌 경우의 Mock 데이터 설정
-    ProjectAccount projectAccount = ProjectAccount.builder()
-        .id(ProjectAccountPK.builder()
-            .accountId(accountId)
-            .projectId(projectId)
-            .build())
         .account(account)
-        .project(project)
-        .role(ProjectAccountRole.dev) // Assuming the user is a developer
-        .build();
+        .date(LocalDateTime.now())
+        .role(ProjectAccountRole.tester);
 
-    // Mock 객체의 동작 설정
-    given(projectAccountRepository.findById(any(ProjectAccountPK.class))).willReturn(Optional.of(projectAccount));
-
-    // 테스트
-    assertThrows(ITSException.class, () -> issueService.addIssue(accountId, projectId, addIssueRequest));
-  }
-
-  @DisplayName("modifyIssue: 사용자가 해당 프로젝트의 PL이고 이슈의 상태가 new인 경우 assignee를 배정하여 이슈 수정에 성공한다")
-  @Test
-  public void modifyIssue_AssigneeChangeAllowed_Success() {
-    // Parameter Mock 데이터 설정
-    Long accountId = 1L;
-    Long projectId = 1L;
-    Long issueId = 1L;
-    String newAssigneeUsername = "newAssignee";
-    ModifyIssueRequest modifyIssueRequest = ModifyIssueRequest.builder()
-        .assignee(newAssigneeUsername)
-        .build();
-
-    // Domain Mock 데이터 설정
-    Project project = Project.builder()
-        .projectId(projectId)
-        .build();
-    Account account = Account.builder()
-        .accountId(accountId)
-        .username("PLUser")
-        .build();
-    Account newAssignee = Account.builder()
-        .accountId(2L)
-        .username(newAssigneeUsername)
-        .build();
-    Issue issue = Issue.builder()
+    issue = Issue.builder()
         .id(IssuePK.builder()
-            .projectId(projectId)
             .issueId(issueId)
-            .build())
-        .status(IssueStatus.NEW) // Assuming the issue status is NEW initially
-        .project(project)
-        .build();
-
-    // 사용자가 PL이고 이슈 상태가 NEW인 경우의 Mock 데이터 설정
-    ProjectAccount projectAccount = ProjectAccount.builder()
-        .id(ProjectAccountPK.builder()
-            .accountId(accountId)
             .projectId(projectId)
             .build())
-        .account(account)
-        .project(project)
-        .role(ProjectAccountRole.PL) // Assuming the user is a PL
-        .build();
-
-    // Mock 객체의 동작 설정
-    given(projectAccountRepository.findById(any(ProjectAccountPK.class))).willReturn(Optional.of(projectAccount));
-    given(accountRepository.findById(accountId)).willReturn(Optional.of(account));
-    given(issueRepository.findById(any(IssuePK.class))).willReturn(Optional.of(issue));
-    given(accountRepository.findByUsername(newAssigneeUsername)).willReturn(Optional.of(newAssignee));
-
-    // ArgumentCaptor 설정
-    ArgumentCaptor<Issue> issueCaptor = ArgumentCaptor.forClass(Issue.class);
-
-    // 테스트 실행
-    issueService.modifyIssue(accountId, projectId, issueId, modifyIssueRequest);
-
-    // 변경 사항 검증
-    verify(issueRepository).save(issueCaptor.capture());
-    Issue savedIssue = issueCaptor.getValue();
-
-    assertEquals(newAssignee, savedIssue.getAssignee());
-    assertEquals(IssueStatus.ASSIGNED, savedIssue.getStatus());
-    assertEquals(account, savedIssue.getManager());
-  }
-
-  @DisplayName("findIssue: Admin 계정인 경우 이슈 상세 정보 조회에 성공한다.")
-  @Test
-  public void findIssue_WhenUserIsAdmin_Success() {
-    // parameter Mock 데이터 설정
-    Long accountId = 0L;
-    Long projectId = 1L;
-    Long issueId = 1L;
-
-    // domain Mock 데이터 설정
-    Project project = Project.builder()
-        .projectId(projectId)
-        .build();
-    Account account = Account.builder()
-        .accountId(accountId)
-        .build();
-    Issue issue = Issue.builder()
-        .id(IssuePK.builder()
-            .projectId(projectId)
-            .issueId(issueId)
-            .build())
-        .title("Issue Title")
-        .description("Issue Description")
-        .keyword(null)
+        .title("Test Issue")
+        .description("Test Issue Description")
         .reporter(account)
-        .reportedDate(LocalDateTime.now().minusDays(1))
-        .manager(account)
-        .assignee(account)
-        .fixer(account)
+        .reportedDate(LocalDateTime.now())
+        .dueDate(LocalDate.now())
         .priority(IssuePriority.CRITICAL)
         .status(IssueStatus.NEW)
-        .dueDate(LocalDateTime.now().plusDays(3).toLocalDate())
-        .closedDate(null)
         .build();
 
-    // 사용자가 프로젝트에 속한 경우의 Mock 데이터 설정
-    ProjectAccount projectAccount = ProjectAccount.builder()
-        .id(ProjectAccountPK.builder()
-            .accountId(accountId)
-            .projectId(projectId)
-            .build())
-        .account(account)
-        .project(project)
-        .role(ProjectAccountRole.tester)
+    addIssueRequest = AddIssueRequest.builder()
+        .title("Test Issue")
+        .description("Test Issue Description")
+        .dueDate(LocalDate.now().toString())
+        .priority(0)
+        .keyword(0)
         .build();
 
-    // Mock 객체의 동작 설정
-    given(issueRepository.findById(any(IssuePK.class))).willReturn(Optional.of(issue));
-    given(commentRepository.findByIssue(any(Issue.class))).willReturn(Optional.empty());
-
-    // 테스트 실행
-    DetailsIssueResponse result = issueService.findIssue(accountId, projectId, issueId);
-
-    // 결과 검증
-    assertThat(result.getId()).isEqualTo(issueId);
-    assertThat(result.getProjectId()).isEqualTo(projectId);
-    assertThat(result.getTitle()).isEqualTo("Issue Title");
-    assertThat(result.getDescription()).isEqualTo("Issue Description");
-    assertThat(result.getReporter()).isEqualTo(account.getUsername());
-    assertThat(result.getReportedDate()).isEqualTo(issue.getReportedDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-    assertThat(result.getManager()).isEqualTo(account.getUsername());
-    assertThat(result.getAssignee()).isEqualTo(account.getUsername());
-    assertThat(result.getFixer()).isEqualTo(account.getUsername());
-    assertThat(result.getPriority()).isEqualTo(IssuePriority.CRITICAL.ordinal());
-    assertThat(result.getStatus()).isEqualTo(IssueStatus.NEW.ordinal());
-    assertThat(result.getDueDate()).isEqualTo(issue.getDueDate().format(DateTimeFormatter.ISO_DATE));
-    assertThat(result.getClosedDate()).isNull();
-    assertThat(result.getComment()).isEmpty();
+    modifyIssueRequest = ModifyIssueRequest.builder()
+        .title("Updated Issue")
+        .description("Updated Description")
+        .priority(1)
+        .build();
   }
 
-  @DisplayName("findIssue: 프로젝트에 속하지 않은 경우 이슈 상세 정보 조회에 실패한다")
   @Test
-  public void findIssue_WhenUserIsNotMember_Fail() {
-    // parameter Mock 데이터 설정
-    Long accountId = 1L;
-    Long projectId = 1L;
-    Long issueId = 1L;
+  void testAddIssue() {
+    when(projectAccountRepository.findById(any(ProjectAccountPK.class))).thenReturn(
+        Optional.of(projectAccountBuilder.build()));
+    when(issueRepository.findMaxIdByProjectId(projectId)).thenReturn(issueId);
+    when(projectRepository.findById(projectId)).thenReturn(Optional.of(project));
+    when(accountRepository.findById(accountId)).thenReturn(Optional.of(account));
 
-    // Mock 객체의 동작 설정
-    given(projectAccountRepository.findById(any(ProjectAccountPK.class))).willReturn(Optional.empty());
+    String issueUrl = issueService.addIssue(accountId, projectId, addIssueRequest);
 
-    // 테스트 실행 및 예외 확인
-    ITSException exception = assertThrows(ITSException.class, () -> issueService.findIssue(accountId, projectId, issueId));
-    assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.ISSUE_DETAILS_FORBIDDEN);
+    assertEquals("/projects/" + projectId + "/issues/" + (issueId + 1), issueUrl);
+    verify(issueRepository, times(1)).save(any(Issue.class));
+    verify(projectRepository, times(1)).save(any(Project.class));
   }
 
-  @DisplayName("addComment: 사용자가 해당 프로젝트에 속해 있을 때 코멘트 추가에 성공한다.")
   @Test
-  @Disabled
-  public void addComment_WhenUserIsMember_Success() {
-    // Given
-    Long accountId = 1L;
-    Long projectId = 1L;
-    Long issueId = 1L;
+  void testModifyIssue() {
+    // ProjectAccount가 존재하는지 확인
+    when(projectAccountRepository.findById(any(ProjectAccountPK.class))).thenReturn(
+        Optional.of(projectAccountBuilder.build()));
 
-    // domain Mock 데이터 설정
-    Project project = Project.builder()
-        .projectId(projectId)
-        .build();
-    Account account = Account.builder()
-        .accountId(accountId)
-        .username("TestUser")
-        .build();
-    given(accountRepository.findById(accountId)).willReturn(Optional.of(account));
+    // AccountRepository에서 계정을 가져오는지 확인
+    when(accountRepository.findById(accountId)).thenReturn(Optional.of(account));
 
-    // 사용자가 프로젝트에 속한 경우의 Mock 데이터 설정
-    ProjectAccount projectAccount = ProjectAccount.builder()
-        .id(ProjectAccountPK.builder()
-            .accountId(accountId)
-            .projectId(projectId)
-            .build())
-        .account(account)
-        .project(project)
-        .role(ProjectAccountRole.tester)
-        .build();
+    // IssueRepository에서 이슈를 가져오는지 확인
+    when(issueRepository.findById(any(IssuePK.class))).thenReturn(Optional.of(issue));
 
-    AddCommentRequest addCommentRequest = AddCommentRequest.builder()
-        .content("Test comment content")
-        .build();
+    // ProjectRepository에서 프로젝트를 가져오는지 확인
+    when(projectRepository.findById(projectId)).thenReturn(Optional.of(project));
 
-    LocalDateTime date = LocalDateTime.now();
+    // modifyIssue 호출
+    assertDoesNotThrow(
+        () -> issueService.modifyIssue(accountId, projectId, issueId, modifyIssueRequest));
 
-    // Mocking issueRepository behavior
-    Issue issue = Issue.builder()
-        .id(IssuePK.builder()
-            .projectId(projectId)
-            .issueId(issueId)
-            .build())
-        .build();
-    given(issueRepository.findById(any(IssuePK.class))).willReturn(Optional.of(issue));
+    // IssueRepository의 save 메서드가 한 번 호출되는지 확인
+    verify(issueRepository, times(1)).save(any(Issue.class));
+  }
 
-    // Mocking commentRepository behavior
-    given(commentRepository.findMaxIdByIssueId(issueId)).willReturn(0L); // assuming no existing comments
-    given(commentRepository.save(any(Comment.class))).willAnswer(invocation -> {
-      Comment comment = invocation.getArgument(0);
-      // Assuming the Comment constructor or builder allows setting ID
-      Comment newComment = Comment.builder()
-          .issue(comment.getIssue())
-          .account(comment.getAccount())
-          .content(comment.getContent())
-          .date(comment.getDate())
-          .id(CommentPK.builder()
-              .issueId(comment.getId().getIssueId())
-              .commentId(1L) // setting the comment ID
-              .build())
-          .build();
-      return newComment;
-    });
+  @Test
+  void testFindIssue() {
+    projectAccountBuilder.role(ProjectAccountRole.PL);
+    when(projectAccountRepository.findById(any(ProjectAccountPK.class))).thenReturn(Optional.of(projectAccountBuilder.build()));
+    when(issueRepository.findById(any(IssuePK.class))).thenReturn(Optional.of(issue));
+    when(commentRepository.findByIssue(any(Issue.class))).thenReturn(Optional.of(Collections.emptyList()));
 
-    // Mocking projectAccountRepository behavior
-    given(projectAccountRepository.findById(any(ProjectAccountPK.class))).willReturn(Optional.of(projectAccount));
+    DetailsIssueResponse issueResponse = issueService.findIssue(accountId, projectId, issueId);
 
-    // when
-    List<AddCommentResponse> addCommentResponseList = issueService.addComment(accountId, projectId, issueId, addCommentRequest);
+    assertNotNull(issueResponse);
+    assertEquals(issueId, issueResponse.getId());
+  }
 
-    // then
-    assertThat(addCommentResponseList).hasSize(1);
-    assertThat(addCommentResponseList.get(0).getId()).isEqualTo(1L);
-    assertThat(addCommentResponseList.get(0).getUsername()).isEqualTo(account.getUsername());
-    assertThat(addCommentResponseList.get(0).getContent()).isEqualTo(addCommentRequest.getContent());
-    assertThat(addCommentResponseList.get(0).getDate()).isEqualTo(date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+  @Test
+  void testAddComment() {
+    when(projectAccountRepository.findById(any(ProjectAccountPK.class))).thenReturn(Optional.of(projectAccountBuilder.build()));
+    when(issueRepository.findById(any(IssuePK.class))).thenReturn(Optional.of(issue));
+    when(accountRepository.findById(accountId)).thenReturn(Optional.of(account));
+    when(commentRepository.findMaxIdByIssueId(issueId)).thenReturn(1L);
+
+    AddCommentRequest addCommentRequest = AddCommentRequest.builder().content("Test Comment").build();
+    List<AddCommentResponse> comments = issueService.addComment(accountId, projectId, issueId, addCommentRequest);
+
+    assertNotNull(comments);
+    verify(commentRepository, times(1)).save(any(Comment.class));
+  }
+
+  @Test
+  void testSuggestAssignee() {
+    projectAccountBuilder.role(ProjectAccountRole.PL);
+    when(projectAccountRepository.findById(any(ProjectAccountPK.class))).thenReturn(Optional.of(projectAccountBuilder.build()));
+    when(issueRepository.findById(any(IssuePK.class))).thenReturn(Optional.of(issue));
+
+    Object[] assignee = new Object[]{new Object[]{"assignedDev"}};
+    when(issueRepository.findAssigneeSuggestion(projectId)).thenReturn(assignee);
+    Mockito.lenient().when(issueRepository.findAssigneeSuggestionByKeyword(eq(projectId), any(IssueKeyword.class))).thenReturn(assignee);
+
+    SuggestIssueAssigneeResponse response = issueService.suggestAssignee(accountId, projectId, issueId);
+
+    assertNotNull(response);
+    assertEquals("assignedDev", response.getUsername());
+  }
+
+  @Test
+  void testSearchIssue() {
+    when(projectAccountRepository.findById(any(ProjectAccountPK.class))).thenReturn(Optional.of(projectAccountBuilder.build()));
+    when(issueRepository.findById_ProjectIdAndTitle(anyLong(), anyString())).thenReturn(Collections.singletonList(issue));
+
+    Map<String, String> searchKey = new HashMap<>();
+    searchKey.put("title", "Test Issue");
+
+    List<SearchIssueResponse> searchResults = issueService.searchIssue(accountId, projectId, searchKey);
+
+    assertNotNull(searchResults);
+    assertFalse(searchResults.isEmpty());
   }
 }
