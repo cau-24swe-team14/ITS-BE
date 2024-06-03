@@ -55,7 +55,7 @@ public class ProjectServiceImplTest {
 
         when(projectRepository.findAll()).thenReturn(projects);
 
-        ProjectResponse response = projectService.getProjectList(1L);
+        ProjectResponse response = projectService.projectList(1L);
         assertEquals(1, response.getIsAdmin());
         assertEquals(2, response.getProject().size());
     }
@@ -68,7 +68,7 @@ public class ProjectServiceImplTest {
 
         when(projectRepository.findByAccountId(2L)).thenReturn(projects);
 
-        ProjectResponse response = projectService.getProjectList(2L);
+        ProjectResponse response = projectService.projectList(2L);
         assertEquals(0, response.getIsAdmin());
         assertEquals(1, response.getProject().size());
     }
@@ -188,7 +188,7 @@ public class ProjectServiceImplTest {
         when(issueRepository.countByReportedDate_Day(any(), any())).thenReturn(Collections.emptyList());
         when(issueRepository.countByReportedDate_Month(any(), any())).thenReturn(Collections.emptyList());
 
-        ProjectTrendResponse response = projectService.findProjectTrend(accountId, projectId, category);
+        ProjectTrendResponse response = projectService.trendProject(accountId, projectId, category);
 
         assertNotNull(response);
         assertNotNull(response.getDaily());
@@ -203,7 +203,7 @@ public class ProjectServiceImplTest {
 
         when(projectAccountRepository.findById(any())).thenReturn(Optional.empty());
 
-        ITSException exception = assertThrows(ITSException.class, () -> projectService.findProjectTrend(accountId, projectId, category));
+        ITSException exception = assertThrows(ITSException.class, () -> projectService.trendProject(accountId, projectId, category));
 
         assertEquals(ErrorCode.PROJECT_TREND_FORBIDDEN, exception.getErrorCode());
     }

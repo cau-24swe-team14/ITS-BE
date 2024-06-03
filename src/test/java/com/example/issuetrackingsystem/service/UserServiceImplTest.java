@@ -101,7 +101,7 @@ public class UserServiceImplTest {
         when(passwordEncoder.encode(signUpRequest.getPassword())).thenReturn("encodedPassword");
         when(accountRepository.save(any(Account.class))).thenReturn(account);
 
-        Long accountId = userService.signUp(signUpRequest);
+        Long accountId = userService.signup(signUpRequest);
         assertEquals(3L, accountId);
     }
 
@@ -119,7 +119,7 @@ public class UserServiceImplTest {
 
         when(accountRepository.findByUsername(signUpRequest.getUsername())).thenReturn(Optional.of(account));
 
-        ITSException exception = assertThrows(ITSException.class, () -> userService.signUp(signUpRequest));
+        ITSException exception = assertThrows(ITSException.class, () -> userService.signup(signUpRequest));
 
         assertEquals(ErrorCode.USERNAME_ALREADY_EXISTS, exception.getErrorCode());
     }
