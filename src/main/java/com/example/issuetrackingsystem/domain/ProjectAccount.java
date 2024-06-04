@@ -1,6 +1,6 @@
 package com.example.issuetrackingsystem.domain;
 
-import com.example.issuetrackingsystem.domain.enums.ProjectUserRole;
+import com.example.issuetrackingsystem.domain.enums.ProjectAccountRole;
 import com.example.issuetrackingsystem.domain.key.ProjectAccountPK;
 import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
@@ -13,17 +13,21 @@ import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
 @Getter
 @Entity
 @Table(name = "project_account")
 @Builder
+@DynamicInsert
 @DynamicUpdate
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@EqualsAndHashCode
 public class ProjectAccount {
 
   @EmbeddedId
@@ -40,7 +44,7 @@ public class ProjectAccount {
   private Account account;
 
   @Column(name = "role", nullable = false)
-  private ProjectUserRole status;
+  private ProjectAccountRole role;
 
   @Column(name = "date", nullable = false, insertable = false, updatable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
   private LocalDateTime date;

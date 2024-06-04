@@ -11,22 +11,27 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MapsId;
 import jakarta.persistence.Table;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
 @Getter
 @Entity
 @Table(name = "issue")
 @Builder
+@DynamicInsert
 @DynamicUpdate
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@EqualsAndHashCode
 public class Issue {
 
   @EmbeddedId
@@ -54,7 +59,11 @@ public class Issue {
   private LocalDateTime reportedDate;
 
   @Column(name = "due_date", nullable = false, columnDefinition = "TIMESTAMP")
-  private LocalDateTime dueDate;
+  private LocalDate dueDate;
+
+  @ManyToOne
+  @JoinColumn(name = "manager", referencedColumnName = "id")
+  private Account manager;
 
   @ManyToOne
   @JoinColumn(name = "assignee", referencedColumnName = "id")

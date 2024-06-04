@@ -39,3 +39,55 @@ out/
 *.yml
 
 document
+
+
+# 시스템 파일 및 디렉토리
+.DS_Store
+Thumbs.db
+
+# 사용자 디렉토리
+/Application Data/
+/Cookies/
+/Local Settings/
+/My Documents/
+/NetHood/
+/PrintHood/
+/Recent/
+/SendTo/
+/Templates/
+/시작 메뉴/
+
+# 사용자 디렉토리 (Windows)
+/Contacts/
+/Documents/
+/Downloads/
+/Favorites/
+/Links/
+/Music/
+/Saved Games/
+/Searches/
+/Videos/
+/OneDrive/
+
+# 환경 설정 및 기타 파일
+.android/
+.bash_history
+.gitconfig
+.gnupg/
+.gradle/
+.h2.server.properties
+.jdks/
+.lesshst
+.m2/
+.ssh/
+.viminfo
+.IdeaProjects/
+.JavaWorkspace/
+.NTUSER.DAT
+.NTUSER.DAT{*}.TM.blf
+.NTUSER.DAT{*}.TMContainer*.regtrans-ms
+.ntuser.dat.LOG1
+.ntuser.dat.LOG2
+.ntuser.ini
+.test.mv.db
+.test.trace.db
